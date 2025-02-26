@@ -36,7 +36,7 @@ namespace Solidariza.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public Usuario? ValidarCredenciais(string email, string senha)
+        public User? ValidarCredenciais(string email, string senha)
         {
             return _dbContext.TbUsuario.FirstOrDefault(u => u.Email == email && u.Senha == senha);
         }
