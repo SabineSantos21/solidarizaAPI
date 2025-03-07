@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Solidariza.Models.Enum;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace Solidariza.Models
@@ -9,7 +10,7 @@ namespace Solidariza.Models
 
         public string Name { get; set; }
 
-        public int Type { get; set; }
+        public UserType Type { get; set; }
 
         public int DocumentType { get; set; }
 
@@ -27,7 +28,7 @@ namespace Solidariza.Models
 
     }
 
-    public class NewUserOrganization
+    public class NewUser
     {
         public string? Name { get; set; }
 
@@ -42,35 +43,9 @@ namespace Solidariza.Models
         public string Phone { get; set; }
 
         public string Password { get; set; }
-    }
 
-    public class NewUserVolunteers
-    {
-        public string? Name { get; set; }
+        public string ContactName { get; set; }
 
-        public int Type { get; set; }
-
-        public int DocumentType { get; set; }
-
-        public string DocumentNumber { get; set; }
-
-        public string Email { get; set; }
-
-        public string Phone { get; set; }
-
-        public string Password { get; set; }
-    }
-
-    public class NewUserDonor
-    {
-        public string? Name { get; set; }
-
-        public int Type { get; set; }
-
-        public string Email { get; set; }
-
-        public string Phone { get; set; }
-
-        public string Password { get; set; }
+        public string ContactPhone { get; set; }
     }
 }

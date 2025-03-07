@@ -5,6 +5,7 @@ namespace Solidariza.Models
 {
     public class CampaignVolunteer
     {
+        public int CampaignVolunteerId { get; set; }
 
         public int CampaignId { get; set; }
 

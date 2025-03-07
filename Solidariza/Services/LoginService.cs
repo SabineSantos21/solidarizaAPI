@@ -38,7 +38,7 @@ namespace Solidariza.Services
 
         public User? ValidarCredenciais(string email, string senha)
         {
-            return _dbContext.TbUsuario.FirstOrDefault(u => u.Email == email && u.Senha == senha);
+            return _dbContext.User.FirstOrDefault(u => u.Email == email && u.Password == senha);
         }
     }
 }

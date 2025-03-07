@@ -5,6 +5,8 @@ namespace Solidariza.Models
 {
     public class OrganizationInfo
     {
+        public int OrganizationInfoId { get; set; }
+
         public int UserId { get; set; }
 
         public bool IsOrganizationApproved { get; set; } = false;
