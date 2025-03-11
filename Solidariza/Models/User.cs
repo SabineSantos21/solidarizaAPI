@@ -12,15 +12,15 @@ namespace Solidariza.Models
 
         public UserType Type { get; set; }
 
-        public int DocumentType { get; set; }
+        public DocumentType? DocumentType { get; set; }
 
-        public string DocumentNumber { get; set; }
+        public string? DocumentNumber { get; set; }
 
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
-        public string Phone { get; set; }
+        public string? Phone { get; set; }
 
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         public DateTime CreationDate { get; set; }
 
@@ -34,18 +34,18 @@ namespace Solidariza.Models
 
         public int Type { get; set; }
 
-        public int DocumentType { get; set; }
+        public int? DocumentType { get; set; }
 
-        public string DocumentNumber { get; set; }
+        public string? DocumentNumber { get; set; }
 
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
-        public string Phone { get; set; }
+        public string? Phone { get; set; }
 
         public string Password { get; set; }
 
-        public string ContactName { get; set; }
+        public string? ContactName { get; set; }
 
-        public string ContactPhone { get; set; }
+        public string? ContactPhone { get; set; }
     }
 }

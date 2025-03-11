@@ -4,11 +4,11 @@ using Solidariza.Models.Enum;
 
 namespace Solidariza.Services
 {
-    public class UsuarioService
+    public class UserService
     {
         private readonly ConnectionDB _dbContext;
 
-        public UsuarioService(ConnectionDB dbContext) 
+        public UserService(ConnectionDB dbContext) 
         {
             _dbContext = dbContext;
         }
@@ -25,29 +25,31 @@ namespace Solidariza.Services
 
         public async Task<User> CreateUser(NewUser newUser)
         {
-            User user = new User();
-            user.Name = newUser.Name;
-            user.Type = (UserType) newUser.Type;
-            user.Email = newUser.Email;
-            user.Password = newUser.Password;
-            user.Phone = newUser.Phone;
-            user.DocumentType = newUser.DocumentType;
-            user.DocumentNumber = newUser.DocumentNumber;
-
-            _dbContext.User.Add(user);
-            await _dbContext.SaveChangesAsync();
-
-            if ((UserType) newUser.Type == UserType.Organization)
+            try
             {
-                OrganizationInfo organizationInfo = new OrganizationInfo();
-                organizationInfo.UserId = user.UserId;
-                organizationInfo.ContactName = newUser.ContactName;
-                organizationInfo.ContactPhone = newUser.ContactPhone;
+                User user = new User()
+                {
+                    Name = newUser.Name,
+                    Type = (UserType)newUser.Type,
+                    DocumentNumber = newUser.DocumentNumber,
+                    DocumentType = newUser.DocumentType != null ? (DocumentType)newUser.DocumentType : null,
+                    Phone = newUser.Phone,
+                    Email = newUser.Email,
+                    CreationDate = DateTime.UtcNow,
+                    IsActive = true,
+                    Password = newUser.Password,
+                };
 
-                _
+                _dbContext.User.Add(user);
+                await _dbContext.SaveChangesAsync();
+
+                return user;
             }
-
-            return user;
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+         
         }
 
         //public async Task AtualizarUsuario(Usuario existingUsuario, Usuario usuario)

@@ -58,6 +58,13 @@ namespace Solidariza
 
             services.AddDbContext<ConnectionDB>(options =>
             options.UseMySql(Configuration.GetConnectionString("DefaultConnection"),new MySqlServerVersion(new Version(8, 0, 27))));
+
+            services.AddCors(options => options.AddPolicy("PolicyCors", builder => builder
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader()));
+
+            services.AddHttpClient("http-client");
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -68,6 +75,8 @@ namespace Solidariza
             }
 
             app.UseRouting();
+
+            app.UseCors("PolicyCors");
 
             app.UseAuthentication();
             app.UseAuthorization();
