@@ -21,13 +21,30 @@ namespace Solidariza.Controllers
         {
             LoginService loginService = new LoginService(_dbContext);
 
-            if (loginService.ValidarCredenciais(login.Email, login.Senha) != null)
+            User user = loginService.ValidarCredenciais(login.Email, login.Password);
+
+            if ( user != null)
             {
+                UserResponse userResponse = new UserResponse()
+                {
+                    UserId = user.UserId,
+                    Name = user.Name,
+                    DocumentNumber = user.DocumentNumber,
+                    DocumentType = user.DocumentType,
+                    Type = user.Type,
+                    Email = user.Email,
+                    IsActive = user.IsActive,
+                    Phone = user.Phone,
+                };
+
                 var token = loginService.GerarTokenJWT(login.Email);
-                return Ok(new { token });
+                return Ok(new LoginResponse() { 
+                    User = userResponse,
+                    Token = token 
+                });
             }
 
-            return Ok();
+            return BadRequest();
         }
     }
 }

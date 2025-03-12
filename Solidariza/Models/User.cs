@@ -48,4 +48,23 @@ namespace Solidariza.Models
 
         public string? ContactPhone { get; set; }
     }
+
+    public class UserResponse
+    {
+        public int UserId { get; set; }
+
+        public string Name { get; set; }
+
+        public UserType Type { get; set; }
+
+        public DocumentType? DocumentType { get; set; }
+
+        public string? DocumentNumber { get; set; }
+
+        public string? Email { get; set; }
+
+        public string? Phone { get; set; }
+
+        public bool IsActive { get; set; } = true;
+    }
 }
