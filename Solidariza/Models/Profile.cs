@@ -17,4 +17,25 @@ namespace Solidariza.Models
 
         public string Address { get; set; }
     }
+    
+    public class NewProfile
+    {
+
+        public int UserId { get; set; }
+
+        public string Name { get; set; }
+
+        public string Description { get; set; }
+
+        public string Address { get; set; }
+    }
+    
+    public class UpdateProfile
+    {
+        public string Name { get; set; }
+
+        public string Description { get; set; }
+
+        public string Address { get; set; }
+    }
 }
