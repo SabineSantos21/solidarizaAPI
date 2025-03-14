@@ -7,6 +7,8 @@ namespace Solidariza
     {
         public DbSet<User> User { get; set; }
 
+        public DbSet<Campaign> Campaign { get; set; }
+
         public DbSet<Profile> Profile { get; set; }
 
         public DbSet<Link> Link { get; set; }
@@ -20,6 +22,8 @@ namespace Solidariza
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>().ToTable("User").HasKey(u => u.UserId);
+
+            modelBuilder.Entity<Campaign>().ToTable("Campaign").HasKey(u => u.UserId);
 
             modelBuilder.Entity<Profile>().ToTable("Profile").HasKey(u => u.ProfileId);
 
