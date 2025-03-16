@@ -23,6 +23,11 @@ namespace Solidariza.Services
             return await _dbContext.Profile.FirstOrDefaultAsync(p => p.ProfileId == id);
         }
 
+        public async Task<Profile?> GetProfileByUserId(int userId)
+        {
+            return await _dbContext.Profile.FirstOrDefaultAsync(p => p.UserId == userId);
+        }
+
         public async Task<Profile> CreateProfile(NewProfile newProfile)
         {
             try
