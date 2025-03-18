@@ -32,12 +32,12 @@ namespace Solidariza.Controllers
             return profile;
         }
 
-        [HttpGet("/User/{userId}")]
+        [HttpGet("User/{userId}")]
         public async Task<ActionResult<Profile>> GetProfileByUserId(int userId)
         {
             ProfileService profileService = new ProfileService(_dbContext);
 
-            Profile? profile = await profileService.GetProfileById(userId);
+            Profile? profile = await profileService.GetProfileByUserId(userId);
 
             if (profile == null)
             {
@@ -69,17 +69,21 @@ namespace Solidariza.Controllers
         {
             ProfileService profileService = new ProfileService(_dbContext);
 
-            Profile profile = new Profile();
-            profile.Name = atualizarProfile.Name;
-            profile.Description = atualizarProfile.Description;
-            profile.Address = atualizarProfile.Address;
-
             var existingProfile = await _dbContext.Profile.FindAsync(id);
 
             if (existingProfile == null)
             {
                 return NotFound();
             }
+
+            Profile profile = existingProfile;
+            profile.Name = atualizarProfile.Name;
+            profile.Phone = atualizarProfile.Phone;
+            profile.Description = atualizarProfile.Description;
+            profile.Address = atualizarProfile.Address;
+            profile.City = atualizarProfile.City;
+            profile.State = atualizarProfile.State;
+            profile.Zip = atualizarProfile.Zip;
 
             await profileService.AtualizarProfile(existingProfile, profile);
 

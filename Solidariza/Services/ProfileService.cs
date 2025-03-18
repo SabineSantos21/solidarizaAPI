@@ -38,6 +38,10 @@ namespace Solidariza.Services
                     Description = newProfile.Description,
                     Address = newProfile.Address,
                     UserId = newProfile.UserId,
+                    Zip = newProfile.Zip,
+                    City = newProfile.City,
+                    State = newProfile.State,
+                    Phone = newProfile.Phone,
                 };
 
                 _dbContext.Profile.Add(profile);
@@ -54,13 +58,24 @@ namespace Solidariza.Services
 
         public async Task AtualizarProfile(Profile existingProfile, Profile profile)
         {
-            existingProfile.Name = profile.Name;
-            existingProfile.Description = profile.Description;
-            existingProfile.Address = profile.Address;
-            existingProfile.UserId = profile.UserId;
+            try
+            {
+                existingProfile.Name = profile.Name;
+                existingProfile.Description = profile.Description;
+                existingProfile.Address = profile.Address;
+                existingProfile.UserId = profile.UserId;
+                existingProfile.Zip = profile.Zip;
+                existingProfile.City = profile.City;
+                existingProfile.State = profile.State;
+                existingProfile.Phone = profile.Phone;
 
-            _dbContext.Profile.Update(existingProfile);
-            await _dbContext.SaveChangesAsync();
+                _dbContext.Profile.Update(existingProfile);
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public async Task DeletarProfile(Profile profile)
