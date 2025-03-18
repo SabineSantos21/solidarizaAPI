@@ -35,16 +35,25 @@ namespace Solidariza.Controllers
         [HttpGet("User/{userId}")]
         public async Task<ActionResult<Profile>> GetProfileByUserId(int userId)
         {
-            ProfileService profileService = new ProfileService(_dbContext);
-
-            Profile? profile = await profileService.GetProfileByUserId(userId);
-
-            if (profile == null)
+            try
             {
-                return NotFound();
-            }
+                ProfileService profileService = new ProfileService(_dbContext);
 
-            return profile;
+                Profile? profile = await profileService.GetProfileByUserId(userId);
+
+                if (profile == null)
+                {
+                    return NotFound();
+                }
+
+                return profile;
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+            
         }
 
         [HttpPost("")]

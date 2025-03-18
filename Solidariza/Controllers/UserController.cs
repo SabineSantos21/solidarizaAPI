@@ -40,6 +40,15 @@ namespace Solidariza.Controllers
                 UserService usuarioService = new UserService(_dbContext);
                 User user = await usuarioService.CreateUser(newUser);
 
+                NewProfile newProfile = new NewProfile()
+                {
+                    UserId = user.UserId,
+                    Name = user.Name
+                };
+
+                ProfileService profileService = new ProfileService(_dbContext);
+                Profile profile = await profileService.CreateProfile(newProfile);
+
                 return Ok(user);
             }
             catch (Exception ex)
