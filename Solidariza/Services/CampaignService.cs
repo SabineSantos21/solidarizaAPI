@@ -23,6 +23,11 @@ namespace Solidariza.Services
             return await _dbContext.Campaign.FirstOrDefaultAsync(p => p.CampaignId == id);
         }
 
+        public async Task<List<Campaign?>> GetCampaignByUserId(int id)
+        {
+            return await _dbContext.Campaign.Where(p => p.UserId == id).ToListAsync();
+        }
+
         public async Task<Campaign> CreateCampaign(NewCampaign newCampaign)
         {
             try
