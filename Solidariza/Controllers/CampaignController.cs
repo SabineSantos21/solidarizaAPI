@@ -72,8 +72,8 @@ namespace Solidariza.Controllers
             Campaign campaign = new Campaign();
             campaign.Title = atualizarCampaign.Title;
             campaign.Description = atualizarCampaign.Description;
-            campaign.StartDate = atualizarCampaign.StartDate;
-            campaign.EndDate = atualizarCampaign.EndDate;
+            campaign.StartDate = Convert.ToDateTime(atualizarCampaign.StartDate);
+            campaign.EndDate = Convert.ToDateTime(atualizarCampaign.EndDate);
             campaign.Status = (CampaignStatus) atualizarCampaign.Status;
 
             var existingCampaign = await _dbContext.Campaign.FindAsync(id);

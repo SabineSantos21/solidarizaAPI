@@ -36,9 +36,10 @@ namespace Solidariza.Services
                 {
                     Title = newCampaign.Title,
                     Description = newCampaign.Description,
-                    EndDate = newCampaign.EndDate,
-                    StartDate = newCampaign.StartDate,
+                    EndDate = Convert.ToDateTime(newCampaign.EndDate),
+                    StartDate = Convert.ToDateTime(newCampaign.StartDate),
                     Status = (CampaignStatus)newCampaign.Status,
+                    UserId = newCampaign.UserId
                 };
 
                 _dbContext.Campaign.Add(campaign);
