@@ -69,19 +69,19 @@ namespace Solidariza.Controllers
         {
             CampaignService campaignService = new CampaignService(_dbContext);
 
-            Campaign campaign = new Campaign();
-            campaign.Title = atualizarCampaign.Title;
-            campaign.Description = atualizarCampaign.Description;
-            campaign.StartDate = Convert.ToDateTime(atualizarCampaign.StartDate);
-            campaign.EndDate = Convert.ToDateTime(atualizarCampaign.EndDate);
-            campaign.Status = (CampaignStatus) atualizarCampaign.Status;
-
             var existingCampaign = await _dbContext.Campaign.FindAsync(id);
 
             if (existingCampaign == null)
             {
                 return NotFound();
             }
+
+            Campaign campaign = new Campaign();
+            campaign.Title = atualizarCampaign.Title;
+            campaign.Description = atualizarCampaign.Description;
+            campaign.StartDate = Convert.ToDateTime(atualizarCampaign.StartDate);
+            campaign.EndDate = Convert.ToDateTime(atualizarCampaign.EndDate);
+            campaign.Status = (CampaignStatus) atualizarCampaign.Status;
 
             await campaignService.AtualizarCampaign(existingCampaign, campaign);
 

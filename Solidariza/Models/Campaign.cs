@@ -1,4 +1,5 @@
 ﻿using Solidariza.Models.Enum;
+using System.ComponentModel.DataAnnotations;
 
 namespace Solidariza.Models
 {

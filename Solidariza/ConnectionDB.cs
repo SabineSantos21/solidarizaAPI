@@ -23,7 +23,7 @@ namespace Solidariza
         {
             modelBuilder.Entity<User>().ToTable("User").HasKey(u => u.UserId);
 
-            modelBuilder.Entity<Campaign>().ToTable("Campaign").HasKey(u => u.UserId);
+            modelBuilder.Entity<Campaign>().ToTable("Campaign").HasKey(u => u.CampaignId);
 
             modelBuilder.Entity<Profile>().ToTable("Profile").HasKey(u => u.ProfileId);
 

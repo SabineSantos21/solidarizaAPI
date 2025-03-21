@@ -56,14 +56,21 @@ namespace Solidariza.Services
 
         public async Task AtualizarCampaign(Campaign existingCampaign, Campaign campaign)
         {
-            existingCampaign.Title = campaign.Title;
-            existingCampaign.Description = campaign.Description;
-            existingCampaign.EndDate = campaign.EndDate;
-            existingCampaign.StartDate = campaign.StartDate;
-            existingCampaign.Status = (CampaignStatus)campaign.Status;
+            try
+            {
+                existingCampaign.Title = campaign.Title;
+                existingCampaign.Description = campaign.Description;
+                existingCampaign.EndDate = campaign.EndDate;
+                existingCampaign.StartDate = campaign.StartDate;
+                existingCampaign.Status = campaign.Status;
 
-            _dbContext.Campaign.Update(existingCampaign);
-            await _dbContext.SaveChangesAsync();
+                _dbContext.Campaign.Update(existingCampaign);
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public async Task DeletarCampaign(Campaign campaign)
