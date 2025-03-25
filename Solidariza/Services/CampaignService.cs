@@ -13,9 +13,9 @@ namespace Solidariza.Services
             _dbContext = dbContext;
         }
 
-        public async Task<IEnumerable<Campaign>> GetCampaigns()
+        public async Task<List<Campaign>> GetCampaigns()
         {
-            return await _dbContext.Campaign.ToListAsync();
+            return await _dbContext.Campaign.Where(c => c.Status == CampaignStatus.Active).Include(p => p.User).ToListAsync();
         }
 
         public async Task<Campaign?> GetCampaignById(int id)

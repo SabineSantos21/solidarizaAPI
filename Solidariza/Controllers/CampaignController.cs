@@ -17,6 +17,21 @@ namespace Solidariza.Controllers
             _dbContext = dbContext;
         }
 
+        [HttpGet("")]
+        public async Task<ActionResult<List<Campaign>>> GetCampaigns()
+        {
+            CampaignService campaignService = new CampaignService(_dbContext);
+
+            List<Campaign> campaign = await campaignService.GetCampaigns();
+
+            if (campaign == null)
+            {
+                return NotFound();
+            }
+
+            return campaign;
+        }
+        
         [HttpGet("{id}")]
         public async Task<ActionResult<Campaign>> GetCampaignById(int id)
         {
