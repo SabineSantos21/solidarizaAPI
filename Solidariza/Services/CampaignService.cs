@@ -25,7 +25,7 @@ namespace Solidariza.Services
 
         public async Task<List<Campaign>> GetCampaignByUserId(int id)
         {
-            return await _dbContext.Campaign.Where(p => p.UserId == id).AsNoTracking().ToListAsync();
+            return await _dbContext.Campaign.Where(p => p.UserId == id).Include(p => p.User).ToListAsync();
         }
 
         public async Task<Campaign> CreateCampaign(NewCampaign newCampaign)

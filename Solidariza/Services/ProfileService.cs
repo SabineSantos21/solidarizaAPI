@@ -71,6 +71,17 @@ namespace Solidariza.Services
 
                 _dbContext.Profile.Update(existingProfile);
                 await _dbContext.SaveChangesAsync();
+
+                UserService userService = new UserService(_dbContext);
+                User? existingUser = await userService.GetUserById(existingProfile.UserId);
+
+                if(existingUser != null)
+                {
+                    existingUser.Name = profile.Name;
+
+                    _dbContext.User.Update(existingUser);
+                    await _dbContext.SaveChangesAsync();
+                }
             }
             catch (Exception ex)
             {
