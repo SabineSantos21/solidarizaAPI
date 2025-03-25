@@ -97,6 +97,10 @@ namespace Solidariza.Controllers
             campaign.StartDate = Convert.ToDateTime(atualizarCampaign.StartDate);
             campaign.EndDate = Convert.ToDateTime(atualizarCampaign.EndDate);
             campaign.Status = (CampaignStatus) atualizarCampaign.Status;
+            campaign.Type = (CampaignType) atualizarCampaign.Type;
+            campaign.State = atualizarCampaign.State;
+            campaign.City = atualizarCampaign.City;
+            campaign.Address = atualizarCampaign.Address;
 
             await campaignService.AtualizarCampaign(existingCampaign, campaign);
 

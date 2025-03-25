@@ -11,6 +11,8 @@ namespace Solidariza.Models
 
         public virtual User User { get; set; }
 
+        public CampaignType Type { get; set; }
+
         public string Title { get; set; }
 
         public string Description { get; set; }
@@ -21,6 +23,12 @@ namespace Solidariza.Models
 
         public CampaignStatus Status { get; set; }
 
+        public string? Address { get; set; }
+
+        public string? City { get; set; }
+
+        public string? State { get; set; }
+
     }
 
     public class NewCampaign
@@ -28,6 +36,8 @@ namespace Solidariza.Models
         public int UserId { get; set; }
 
         public string Title { get; set; }
+
+        public int Type { get; set; }
 
         public string Description { get; set; }
 
@@ -37,6 +47,12 @@ namespace Solidariza.Models
 
         public int Status { get; set; }
 
+        public string? Address { get; set; }
+
+        public string? City { get; set; }
+
+        public string? State { get; set; }
+
     }
     
     public class UpdateCampaign
@@ -45,6 +61,8 @@ namespace Solidariza.Models
 
         public string Title { get; set; }
 
+        public int Type { get; set; }
+
         public string Description { get; set; }
 
         public DateTime? StartDate { get; set; }
@@ -52,6 +70,12 @@ namespace Solidariza.Models
         public DateTime? EndDate { get; set; }
 
         public int Status { get; set; }
+
+        public string? Address { get; set; }
+
+        public string? City { get; set; }
+
+        public string? State { get; set; }
 
     }
 }

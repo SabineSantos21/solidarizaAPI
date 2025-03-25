@@ -20,7 +20,7 @@ namespace Solidariza.Services
 
         public async Task<Campaign?> GetCampaignById(int id)
         {
-            return await _dbContext.Campaign.FirstOrDefaultAsync(p => p.CampaignId == id);
+            return await _dbContext.Campaign.Include(p => p.User).FirstOrDefaultAsync(p => p.CampaignId == id);
         }
 
         public async Task<List<Campaign>> GetCampaignByUserId(int id)
@@ -39,7 +39,11 @@ namespace Solidariza.Services
                     EndDate = Convert.ToDateTime(newCampaign.EndDate),
                     StartDate = Convert.ToDateTime(newCampaign.StartDate),
                     Status = (CampaignStatus)newCampaign.Status,
-                    UserId = newCampaign.UserId
+                    UserId = newCampaign.UserId,
+                    Type = (CampaignType)newCampaign.Type,
+                    Address = newCampaign.Address,
+                    State = newCampaign.State,
+                    City = newCampaign.City,
                 };
 
                 _dbContext.Campaign.Add(campaign);
@@ -63,6 +67,10 @@ namespace Solidariza.Services
                 existingCampaign.EndDate = campaign.EndDate;
                 existingCampaign.StartDate = campaign.StartDate;
                 existingCampaign.Status = campaign.Status;
+                existingCampaign.Type = campaign.Type;
+                existingCampaign.State = campaign.State;
+                existingCampaign.City = campaign.City;
+                existingCampaign.Address = campaign.Address;
 
                 _dbContext.Campaign.Update(existingCampaign);
                 await _dbContext.SaveChangesAsync();
