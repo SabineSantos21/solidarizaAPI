@@ -46,6 +46,21 @@ namespace Solidariza.Controllers
 
             return campaignVolunteer;
         }
+        
+        [HttpGet("User/{userId}")]
+        public async Task<ActionResult<List<CampaignVolunteer>>> GetCampaignVolunteerByUserId(int userId)
+        {
+            CampaignVolunteerService campaignVolunteerService = new CampaignVolunteerService(_dbContext);
+
+            List<CampaignVolunteer> campaignVolunteer = await campaignVolunteerService.GetCampaignVolunteersByUserId(userId);
+
+            if (campaignVolunteer == null)
+            {
+                return NotFound();
+            }
+
+            return campaignVolunteer;
+        }
 
         [HttpPost("")]
         public async Task<ActionResult> CreateCampaignVolunteer(NewCampaignVolunteer newCampaignVolunteer)
@@ -87,7 +102,7 @@ namespace Solidariza.Controllers
 
             CampaignVolunteer campaign = new CampaignVolunteer()
             {
-                IsApproved = atualizarCampaignVolunteer.IsApproved
+                IsApproved = (CampaignVolunteerStatus) atualizarCampaignVolunteer.IsApproved
             };
 
             await campaignVolunteerService.AtualizarCampaignVolunteer(existingCampaignVolunteer, campaign);

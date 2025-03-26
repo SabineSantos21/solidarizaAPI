@@ -22,6 +22,11 @@ namespace Solidariza.Services
         {
             return await _dbContext.Campaign_Volunteers.Include(c => c.Campaign).Include(c => c.User).Where(p => p.CampaignId == id).ToListAsync();
         }
+        
+        public async Task<List<CampaignVolunteer>> GetCampaignVolunteersByUserId(int id)
+        {
+            return await _dbContext.Campaign_Volunteers.Include(c => c.Campaign).Include(c => c.User).Where(p => p.UserId == id).ToListAsync();
+        }
 
         public async Task<CampaignVolunteer> CreateCampaignVolunteer(NewCampaignVolunteer newCampaignVolunteer)
         {
@@ -31,7 +36,7 @@ namespace Solidariza.Services
                 {
                     CampaignId = newCampaignVolunteer.CampaignId,
                     UserId = newCampaignVolunteer.UserId,
-                    IsApproved = false
+                    IsApproved = CampaignVolunteerStatus.PENDING
                 };
 
                 _dbContext.Campaign_Volunteers.Add(campaignVolunteer);
@@ -50,7 +55,7 @@ namespace Solidariza.Services
         {
             try
             {
-                existingCampaignVolunteer.IsApproved = true;
+                existingCampaignVolunteer.IsApproved = campaignVolunteer.IsApproved;
                 
                 _dbContext.Campaign_Volunteers.Update(existingCampaignVolunteer);
                 await _dbContext.SaveChangesAsync();

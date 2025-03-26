@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Solidariza.Models.Enum;
 
 namespace Solidariza.Models
 {
@@ -15,7 +16,7 @@ namespace Solidariza.Models
 
         public virtual User User { get; set; }
 
-        public bool IsApproved { get; set; } = false;
+        public CampaignVolunteerStatus IsApproved { get; set; }
     }
 
     public class NewCampaignVolunteer
@@ -27,7 +28,7 @@ namespace Solidariza.Models
     
     public class UpdateCampaignVolunteer
     {
-        public bool IsApproved { get; set; } = false;
+        public int IsApproved { get; set; }
 
     }
 }
