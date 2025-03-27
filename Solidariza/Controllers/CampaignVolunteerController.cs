@@ -61,6 +61,21 @@ namespace Solidariza.Controllers
 
             return campaignVolunteer;
         }
+        
+        [HttpGet("User/{userId}/Aproved")]
+        public async Task<ActionResult<List<CampaignVolunteer>>> GetCampaignVolunteerByUserIdAndAproved(int userId)
+        {
+            CampaignVolunteerService campaignVolunteerService = new CampaignVolunteerService(_dbContext);
+
+            List<CampaignVolunteer> campaignVolunteer = await campaignVolunteerService.GetCampaignVolunteersByUserIdAndAproved(userId);
+
+            if (campaignVolunteer == null)
+            {
+                return NotFound();
+            }
+
+            return campaignVolunteer;
+        }
 
         [HttpPost("")]
         public async Task<ActionResult> CreateCampaignVolunteer(NewCampaignVolunteer newCampaignVolunteer)
