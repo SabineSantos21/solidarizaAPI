@@ -28,6 +28,11 @@ namespace Solidariza.Services
             return await _dbContext.Profile.FirstOrDefaultAsync(p => p.UserId == userId);
         }
 
+        public async Task<List<Profile>> GetProfilesOrganizationGetProfilesOrganization()
+        {
+            return await _dbContext.Profile.Include(c => c.User).Where(p => p.User.Type == UserType.Organization).ToListAsync();
+        }
+
         public async Task<Profile> CreateProfile(NewProfile newProfile)
         {
             try

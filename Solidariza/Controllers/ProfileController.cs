@@ -115,5 +115,30 @@ namespace Solidariza.Controllers
 
             return NoContent();
         }
+
+        [HttpGet("Organization")]
+        public async Task<ActionResult<Profile>> GetProfilesOrganization()
+        {
+            try
+            {
+                ProfileService profileService = new ProfileService(_dbContext);
+
+                List<Profile> profile = await profileService.GetProfilesOrganizationGetProfilesOrganization();
+
+                if (profile == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(profile);
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+
+        }
     }
+
 }
