@@ -1,0 +1,119 @@
+using Solidariza;
+using Solidariza.Services;
+using Microsoft.AspNetCore.Mvc;
+using Solidariza.Models;
+using Solidariza.Models.Enum;
+
+namespace Solidariza.Controllers
+{
+    [ApiController]
+    [Route("[controller]")]
+    public class OrganizationInfoController : ControllerBase
+    {
+        private readonly ConnectionDB _dbContext;
+
+        public OrganizationInfoController(ConnectionDB dbContext)
+        {
+            _dbContext = dbContext;
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<OrganizationInfo>> GetOrganizationInfoById(int id)
+        {
+            OrganizationInfoService organizationInfoService = new OrganizationInfoService(_dbContext);
+
+            OrganizationInfo? organizationInfo = await organizationInfoService.GetOrganizationInfoById(id);
+
+            if (organizationInfo == null)
+            {
+                return NotFound();
+            }
+
+            return organizationInfo;
+        }
+
+        [HttpGet("Organization/{userId}")]
+        public async Task<ActionResult<OrganizationInfo>> GetOrganizationInfoByUserId(int userId)
+        {
+            try
+            {
+                OrganizationInfoService organizationInfoService = new OrganizationInfoService(_dbContext);
+
+                OrganizationInfo? organizationInfo = await organizationInfoService.GetOrganizationInfoByUserId(userId);
+
+                if (organizationInfo == null)
+                {
+                    return Ok();
+                }
+
+                return organizationInfo;
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+            
+        }
+
+        [HttpPost("")]
+        public async Task<ActionResult> CreateOrganizationInfo(NewOrganizationInfo newOrganizationInfo)
+        {
+            try
+            {
+                OrganizationInfoService organizationService = new OrganizationInfoService(_dbContext);
+                OrganizationInfo organizationInfo = await organizationService.CreateOrganizationInfo(newOrganizationInfo);
+
+                return Ok(organizationInfo);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutOrganizationInfo(int id, UpdateOrganizationInfo atualizarOrganizationInfo)
+        {
+            OrganizationInfoService organizationInfoService = new OrganizationInfoService(_dbContext);
+
+            var existingOrganizationInfo = await _dbContext.Organization_Info.FindAsync(id);
+
+            if (existingOrganizationInfo == null)
+            {
+                return NotFound();
+            }
+
+            OrganizationInfo organizationInfo = existingOrganizationInfo;
+            organizationInfo.PixKey = atualizarOrganizationInfo.PixKey;
+            organizationInfo.PixType = (PixType) atualizarOrganizationInfo.PixType;
+            organizationInfo.BeneficiaryCity = atualizarOrganizationInfo.BeneficiaryCity;
+            organizationInfo.BeneficiaryName = atualizarOrganizationInfo.BeneficiaryName;
+            organizationInfo.ContactPhone = atualizarOrganizationInfo.ContactPhone;
+            organizationInfo.ContactName = atualizarOrganizationInfo.ContactName;
+
+            await organizationInfoService.AtualizarOrganizationInfo(existingOrganizationInfo, organizationInfo);
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteOrganizationInfo(int id)
+        {
+            OrganizationInfoService organizationInfoService = new OrganizationInfoService(_dbContext);
+
+            var organizationInfo = await _dbContext.Organization_Info.FindAsync(id);
+
+            if (organizationInfo == null)
+            {
+                return NotFound();
+            }
+
+            await organizationInfoService.DeleteOrganizationInfo(organizationInfo);
+
+            return NoContent();
+        }
+    }
+
+}
