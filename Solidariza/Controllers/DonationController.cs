@@ -17,21 +17,21 @@ namespace Solidariza.Controllers
             _dbContext = dbContext;
         }
 
-        [HttpPost("QRCode")]
-        public async Task<ActionResult> GetDonationQRCode(DonationQRCodeRequest donationQRCodeRequest)
+        [HttpGet("QRCode/{campaignId}")]
+        public async Task<ActionResult> GetDonationQRCode(int campaignId)
         {
             try
             {
                 DonationService donationService = new DonationService(_dbContext);
 
-                string donationQRCode = await donationService.GetDonationQRCode(donationQRCodeRequest);
+                OrganizationInfo organizationInfo = await donationService.GetQRCodePixByCampaignId(campaignId);
 
-                if (donationQRCode == null)
+                if (organizationInfo == null)
                 {
                     return NotFound();
                 }
                 
-                return Ok(donationQRCode);
+                return Ok(organizationInfo);
 
             } catch(Exception e)
             {

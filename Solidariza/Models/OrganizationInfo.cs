@@ -29,6 +29,9 @@ namespace Solidariza.Models
         public string ContactPhone { get; set; }
 
         public virtual User User { get; set; }
+
+        [NotMapped]
+        public DonationQRCodeResponse? DonationQRCode { get; set; }
     }
     
     public class NewOrganizationInfo
