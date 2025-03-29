@@ -49,35 +49,30 @@ namespace Solidariza.Controllers
                 ProfileService profileService = new ProfileService(_dbContext);
                 Profile profile = await profileService.CreateProfile(newProfile);
 
+                if (user.Type == UserType.Organization)
+                {
+                    ValidateOrganizationService validateOrganizationService = new ValidateOrganizationService(_dbContext);
+                    ConsultCNPJResponse organizationValid = await validateOrganizationService.ConsultCNPJ(user.DocumentNumber);
+
+                    NewOrganizationInfoCNPJValid newOrganizationInfo = new NewOrganizationInfoCNPJValid()
+                    {
+                        UserId = user.UserId,
+                        IsOrganizationApproved = organizationValid.IsValid,
+                        DisapprovalReason = organizationValid.DisapprovalReason,
+                    };
+
+                    OrganizationInfoService organizationInfoService = new OrganizationInfoService(_dbContext); 
+                    OrganizationInfo organizationInfo = await organizationInfoService.CreateOrganizationInfoCPNJValid(newOrganizationInfo);
+                }
+
                 return Ok(user);
             }
             catch (Exception ex)
-            {
+            {   
                 return Problem(ex.Message);
             }
             
         }
-
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutUsuario(int id, AtualizarUsuario atualizarUsuario)
-        //{
-        //    UserService usuarioService = new UserService(_dbContext);
-
-        //    Usuario usuario = new Usuario();
-        //    usuario.Email = atualizarUsuario.Email;
-        //    usuario.Senha = atualizarUsuario.Senha;
-
-        //    var existingUser = await _dbContext.TbUsuario.FindAsync(id);
-
-        //    if (existingUser == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    await usuarioService.AtualizarUsuario(existingUser, usuario);
-
-        //    return NoContent();
-        //}
 
         //[HttpDelete("{id}")]
         //public async Task<IActionResult> DeleteUsuario(int id)

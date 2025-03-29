@@ -27,6 +27,7 @@ namespace Solidariza.Services
         {
             try
             {
+                
                 User user = new User()
                 {
                     Name = newUser.Name,

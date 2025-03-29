@@ -51,6 +51,29 @@ namespace Solidariza.Services
          
         }
 
+        public async Task<OrganizationInfo> CreateOrganizationInfoCPNJValid(NewOrganizationInfoCNPJValid newOrganizationInfo)
+        {
+            try
+            {
+                OrganizationInfo organizationInfo = new OrganizationInfo()
+                {
+                    UserId = newOrganizationInfo.UserId,
+                    IsOrganizationApproved = newOrganizationInfo.IsOrganizationApproved,
+                    DisapprovalReason = newOrganizationInfo.DisapprovalReason
+                };
+
+                _dbContext.Organization_Info.Add(organizationInfo);
+                await _dbContext.SaveChangesAsync();
+
+                return organizationInfo;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
+
         public async Task AtualizarOrganizationInfo(OrganizationInfo existingOrganizationInfo, OrganizationInfo OrganizationInfo)
         {
             try

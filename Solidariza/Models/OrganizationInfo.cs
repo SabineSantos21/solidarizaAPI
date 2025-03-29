@@ -53,6 +53,15 @@ namespace Solidariza.Models
         public string ContactPhone { get; set; }
     }
 
+    public class NewOrganizationInfoCNPJValid 
+    {
+        public int UserId { get; set; }
+
+        public bool IsOrganizationApproved { get; set; }
+
+        public string? DisapprovalReason { get; set; }
+    }
+
     public class UpdateOrganizationInfo
     {
         public int PixType { get; set; }
