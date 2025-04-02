@@ -114,6 +114,37 @@ namespace Solidariza.Controllers
 
             return NoContent();
         }
+
+        [HttpPost("Validade/{organizationInfoId}/{cnpj}")]
+        public async Task<ActionResult> ValidateOrganization(int organizationInfoId, string cnpj)
+        {
+            try
+            {
+                var existingOrganizationInfo = await _dbContext.Organization_Info.FindAsync(organizationInfoId);
+
+                if (existingOrganizationInfo == null)
+                {
+                    return NotFound();
+                }
+
+                ValidateOrganizationService validateOrganizationService = new ValidateOrganizationService(_dbContext);
+                ConsultCNPJResponse organizationValid = await validateOrganizationService.ConsultCNPJ(cnpj);
+
+                OrganizationInfo organizationInfo = existingOrganizationInfo;
+                organizationInfo.DisapprovalReason = organizationValid.DisapprovalReason;
+                organizationInfo.IsOrganizationApproved = organizationValid.IsValid;
+
+                OrganizationInfoService organizationInfoService = new OrganizationInfoService(_dbContext);
+                OrganizationInfo organizationInfoResponse = await organizationInfoService.AtualizarOrganizationInfoValidate(existingOrganizationInfo, organizationInfo);
+
+                return Ok(organizationInfoResponse);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+
+        }
     }
 
 }

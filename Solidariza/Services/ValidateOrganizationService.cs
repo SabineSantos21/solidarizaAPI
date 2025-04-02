@@ -1,9 +1,5 @@
 ﻿using Solidariza.Models;
-using Microsoft.EntityFrameworkCore;
-using Solidariza.Models.Enum;
 using System.Text.Json;
-using System.Net.Http;
-using System.Text;
 
 namespace Solidariza.Services
 {
@@ -29,7 +25,7 @@ namespace Solidariza.Services
                 {
                     return new ConsultCNPJResponse()
                     {
-                        DisapprovalReason = "Não encontramos essa empresa. Confira se o CNPJ está correto e tente novamente.",
+                        DisapprovalReason = "Não encontramos essa empresa. Verifique se o CNPJ está correto e tente novamente",
                         IsValid = false
                     };
                 }
@@ -40,7 +36,7 @@ namespace Solidariza.Services
                     
                     return new ConsultCNPJResponse()
                     {
-                        DisapprovalReason = "Este CNPJ está inativo no momento.",
+                        DisapprovalReason = "Este CNPJ está inativo no momento. Confira a situação cadastral antes de prosseguir.",
                         IsValid = false
                     };
                 }
@@ -52,7 +48,7 @@ namespace Solidariza.Services
                 if (isSemFinsLucrativos == false) {
                     return new ConsultCNPJResponse()
                     {
-                        DisapprovalReason = "Esta organização não é classificada como sem fins lucrativos.",
+                        DisapprovalReason = "Esta organização não é registrada como sem fins lucrativos. Confira as informações e tente novamente.",
                         IsValid = false
                     };
                 }

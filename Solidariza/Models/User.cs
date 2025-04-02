@@ -20,6 +20,7 @@ namespace Solidariza.Models
 
         public string? Phone { get; set; }
 
+        [JsonIgnore]
         public string? Password { get; set; }
 
         public DateTime CreationDate { get; set; }

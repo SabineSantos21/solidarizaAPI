@@ -94,6 +94,24 @@ namespace Solidariza.Services
             }
         }
 
+        public async Task<OrganizationInfo> AtualizarOrganizationInfoValidate(OrganizationInfo existingOrganizationInfo, OrganizationInfo OrganizationInfo)
+        {
+            try
+            {
+                existingOrganizationInfo.DisapprovalReason = OrganizationInfo.DisapprovalReason;
+                existingOrganizationInfo.IsOrganizationApproved = existingOrganizationInfo.IsOrganizationApproved;
+
+                _dbContext.Organization_Info.Update(existingOrganizationInfo);
+                await _dbContext.SaveChangesAsync();
+
+                return existingOrganizationInfo;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
         public async Task DeleteOrganizationInfo(OrganizationInfo organizationInfo)
         {
             _dbContext.Organization_Info.Remove(organizationInfo);
