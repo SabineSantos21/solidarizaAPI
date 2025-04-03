@@ -25,7 +25,14 @@ namespace Solidariza.Services
 
         public async Task<Profile?> GetProfileByUserId(int userId)
         {
-            return await _dbContext.Profile.FirstOrDefaultAsync(p => p.UserId == userId);
+            try
+            {
+                return await _dbContext.Profile.Where(p => p.UserId == userId).FirstOrDefaultAsync();
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public async Task<List<Profile>> GetProfilesOrganizationGetProfilesOrganization()

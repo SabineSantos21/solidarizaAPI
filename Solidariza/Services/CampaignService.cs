@@ -15,7 +15,16 @@ namespace Solidariza.Services
 
         public async Task<List<Campaign>> GetCampaigns()
         {
-            return await _dbContext.Campaign.Where(c => c.Status == CampaignStatus.Active).Include(p => p.User).ToListAsync();
+            return await _dbContext.Campaign
+                .Where(c => c.Status == CampaignStatus.Active)
+                .Join(_dbContext.Organization_Info,
+                      campaign => campaign.UserId,
+                      org => org.UserId,
+                      (campaign, org) => new { campaign, org })
+                .Where(x => x.org.IsOrganizationApproved) // Filtra apenas as organizações aprovadas
+                .Select(x => x.campaign) // Retorna apenas as campanhas
+                .Include(c => c.User) // Inclui os usuários das campanhas
+                .ToListAsync();
         }
 
         public async Task<Campaign?> GetCampaignById(int id)
