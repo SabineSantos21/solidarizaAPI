@@ -73,22 +73,5 @@ namespace Solidariza.Controllers
             }
             
         }
-
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteUsuario(int id)
-        //{
-        //    UserService usuarioService = new UserService(_dbContext);
-
-        //    var usuario = await _dbContext.TbUsuario.FindAsync(id);
-
-        //    if (usuario == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    await usuarioService.DeletarUsuario(usuario);
-
-        //    return NoContent();
-        //}
     }
 }
