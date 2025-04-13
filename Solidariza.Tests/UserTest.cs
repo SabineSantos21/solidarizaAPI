@@ -34,12 +34,10 @@ namespace Solidariza.Tests
 
         private void SeedDatabase(ConnectionDB dbContext)
         {
-            // Adicione dados de teste ao banco de dados em memória
             dbContext.User.Add(new User { UserId = 1, Name = "Test User" });
             dbContext.SaveChanges();
         }
 
-        // Teste simplificado para CreateUser - Assumindo que seus serviços lançam exceções para facilitar o mock.
 
         [Fact]
         public async Task CreateUser_ValidUser_ReturnsOkResult()
