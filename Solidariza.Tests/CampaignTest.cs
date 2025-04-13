@@ -8,6 +8,7 @@ using Solidariza.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Solidariza.Models.Enum;
+using System;
 
 namespace Solidariza.Tests
 {
@@ -55,16 +56,28 @@ namespace Solidariza.Tests
         }
 
         [Fact]
+        public async Task GetCampaigns_ReturnsListOfCampaigns()
+        {
+            var result = await _controller.GetCampaigns();
+            var okResult = Assert.IsType<ActionResult<List<Campaign>>>(result);
+            Assert.NotNull(okResult.Value);
+        }
+
+        [Fact]
         public async Task GetCampaignById_NonExistingId_ReturnsNotFound()
         {
-            // Arrange
             int testCampaignId = 99;
-
-            // Act
             var result = await _controller.GetCampaignById(testCampaignId);
-
-            // Assert
             Assert.IsType<NotFoundResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task GetCampaignByUserId_ExistingUserId_ReturnsCampaigns()
+        {
+            int testUserId = 1;
+            var result = await _controller.GetCampaignByUserId(testUserId);
+            var okResult = Assert.IsType<ActionResult<List<Campaign>>>(result);
+            Assert.NotNull(okResult.Value);
         }
 
         [Fact]
@@ -80,11 +93,67 @@ namespace Solidariza.Tests
             };
 
             var result = await _controller.CreateCampaign(newCampaign);
-
             var okResult = Assert.IsType<OkObjectResult>(result);
             var createdCampaign = Assert.IsType<Campaign>(okResult.Value);
             Assert.Equal("New Campaign", createdCampaign.Title);
         }
 
+        [Fact]
+        public async Task PutCampaign_ExistingId_UpdatesCampaign()
+        {
+            int testCampaignId = 1;
+            var updateCampaign = new UpdateCampaign
+            {
+                Title = "Updated Campaign",
+                Description = "Updated Description",
+                StartDate = DateTime.Now,
+                EndDate = DateTime.Now.AddDays(15),
+                Type = (int)CampaignType.Collection,
+                Status = (int)CampaignStatus.Completed,
+                State = "SC",
+                City = "Joinville",
+                Address = "New Address"
+            };
+
+            var result = await _controller.PutCampaign(testCampaignId, updateCampaign);
+            Assert.IsType<NoContentResult>(result);
+        }
+
+        [Fact]
+        public async Task PutCampaign_NonExistingId_ReturnsNotFound()
+        {
+            int testCampaignId = 99;
+            var updateCampaign = new UpdateCampaign
+            {
+                Title = "Updated Campaign",
+                Description = "Updated Description",
+                StartDate = DateTime.Now,
+                EndDate = DateTime.Now.AddDays(15),
+                Type = (int)CampaignType.Collection,
+                Status = (int)CampaignStatus.Completed,
+                State = "SC",
+                City = "Joinville",
+                Address = "New Address"
+            };
+
+            var result = await _controller.PutCampaign(testCampaignId, updateCampaign);
+            Assert.IsType<NotFoundResult>(result);
+        }
+
+        [Fact]
+        public async Task DeleteCampaign_ExistingId_DeletesCampaign()
+        {
+            int testCampaignId = 1;
+            var result = await _controller.DeleteCampaign(testCampaignId);
+            Assert.IsType<NoContentResult>(result);
+        }
+
+        [Fact]
+        public async Task DeleteCampaign_NonExistingId_ReturnsNotFound()
+        {
+            int testCampaignId = 99;
+            var result = await _controller.DeleteCampaign(testCampaignId);
+            Assert.IsType<NotFoundResult>(result);
+        }
     }
 }
