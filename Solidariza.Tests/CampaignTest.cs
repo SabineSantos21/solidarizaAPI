@@ -40,7 +40,7 @@ namespace Solidariza.Tests
             {
                 dbContext.Campaign.Add(new Campaign
                 {
-                    CampaignId = 1, // Certifique-se de que todos os IDs são únicos
+                    CampaignId = 1,
                     Title = "Test Campaign",
                     UserId = 1,
                     Description = "Description",
@@ -86,6 +86,5 @@ namespace Solidariza.Tests
             Assert.Equal("New Campaign", createdCampaign.Title);
         }
 
-        // Adicione mais testes para PutCampaign e DeleteCampaign conforme necessário
     }
 }

@@ -19,12 +19,14 @@ namespace Solidariza.Tests
         public UserControllerTests()
         {
             var options = new DbContextOptionsBuilder<ConnectionDB>()
-                 .UseInMemoryDatabase(databaseName: "TestDatabase")
-                 .Options;
+               .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+               .Options;
 
             _dbContext = new ConnectionDB(options);
 
-            // Seed Data se necessário
+            _dbContext.Database.EnsureDeleted();
+            _dbContext.Database.EnsureCreated();
+
             SeedDatabase(_dbContext);
 
             _controller = new UserController(_dbContext);
