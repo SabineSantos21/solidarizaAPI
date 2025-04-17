@@ -1,0 +1,38 @@
+name: Deploy .NET Core App para Azure WebApp
+
+on:
+  push:
+    branches:
+      - main   # Ou o nome do seu branch principal
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '6.0' # Troque para a versão do seu projeto
+
+    - name: Restore dependências
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Testes (opcional)
+      run: dotnet test --no-build --verbosity normal
+
+    - name: Publish
+      run: dotnet publish -c Release -o ./publish
+
+    - name: Deploy para Azure Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: 'Solidariza-API' # Troque para o nome do seu WebApp no Azure
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: ./publish
