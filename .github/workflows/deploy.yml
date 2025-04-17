@@ -24,7 +24,7 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
 
-    - name: Testes (opcional)
+    - name: Testes
       run: dotnet test --configuration Release --verbosity normal
 
     - name: Publish
