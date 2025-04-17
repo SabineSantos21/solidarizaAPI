@@ -28,14 +28,14 @@ jobs:
       run: dotnet test --configuration Release --verbosity normal
 
     - name: Publish
-      run: dotnet publish --configuration Release --output ./Solidariza/bin/Release/net8.0
+      run: dotnet publish --configuration Release --output ./solidarizaAPI/publish/
 
     - name: Listar arquivos publicados
-      run: ls -la ./Solidariza/bin/Release/net8.0    # <-- Confirme se web.config está aqui
+      run: ls -la ./solidarizaAPI/publish/    # <-- Confirme se web.config está aqui
 
     - name: Deploy para Azure Web App
       uses: azure/webapps-deploy@v3
       with:
         app-name: 'Solidariza-API'
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        package: ./Solidariza/bin/Release/net8.0
+        package: ./solidarizaAPI/publish/
