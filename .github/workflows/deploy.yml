@@ -3,7 +3,7 @@ name: Deploy .NET Core App para Azure WebApp
 on:
   push:
     branches:
-      - master   # Altere se seu branch principal for outro
+      - master
 
 jobs:
   build-and-deploy:
@@ -16,7 +16,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x' # Garanta que seja a versão do seu projeto
+        dotnet-version: '8.0.x'
 
     - name: Restore dependências
       run: dotnet restore
@@ -30,9 +30,12 @@ jobs:
     - name: Publish
       run: dotnet publish --configuration Release --output ./publish
 
+    - name: Listar arquivos publicados
+      run: ls -la ./publish    # <-- Confirme se web.config está aqui
+
     - name: Deploy para Azure Web App
       uses: azure/webapps-deploy@v3
       with:
-        app-name: 'Solidariza-API' # Nome do seu App no Azure
+        app-name: 'Solidariza-API'
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         package: ./publish
