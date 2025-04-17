@@ -22,7 +22,7 @@ namespace Solidariza
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v.1.0.0", new OpenApiInfo
+                c.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Title = "Solidariza API",
                     Version = "v.1.0.0"
