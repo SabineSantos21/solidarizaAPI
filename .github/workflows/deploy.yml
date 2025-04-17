@@ -3,7 +3,7 @@ name: Deploy .NET Core App para Azure WebApp
 on:
   push:
     branches:
-      - main   # Ou o nome do seu branch principal
+      - master   # Ou o nome do seu branch principal
 
 jobs:
   build-and-deploy:
