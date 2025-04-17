@@ -22,10 +22,10 @@ namespace Solidariza
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo
+                c.SwaggerDoc("v.1.0.0", new OpenApiInfo
                 {
                     Title = "Solidariza API",
-                    Version = "v1"
+                    Version = "v.1.0.0"
                 });
 
                 c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme()
@@ -56,8 +56,8 @@ namespace Solidariza
                 };
             });
 
-            //services.AddDbContext<ConnectionDB>(options =>
-            //options.UseMySql(Configuration.GetConnectionString("DefaultConnection"),new MySqlServerVersion(new Version(8, 0, 27))));
+            services.AddDbContext<ConnectionDB>(options =>
+            options.UseMySql(Configuration.GetConnectionString("DefaultConnection"),new MySqlServerVersion(new Version(8, 0, 27))));
 
             services.AddCors(options => options.AddPolicy("PolicyCors", builder => builder
                 .AllowAnyOrigin()
