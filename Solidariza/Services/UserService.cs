@@ -23,6 +23,11 @@ namespace Solidariza.Services
             return await _dbContext.User.FirstOrDefaultAsync(p => p.UserId == id);
         }
 
+        public async Task<User?> GetUserByUserName(string username)
+        {
+            return await _dbContext.User.FirstOrDefaultAsync(p => p.Name == username);
+        }
+
         public async Task<User> CreateUser(NewUser newUser)
         {
             try

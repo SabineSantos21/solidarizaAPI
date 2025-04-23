@@ -220,10 +220,19 @@ namespace Solidariza.Models
         public Cidade? Cidade { get; set; }
 
         [JsonPropertyName("motivo_situacao_cadastral")]
-        public string? MotivoSituacaoCadastral { get; set; }
+        public MotivoSituacaoCadastral? MotivoSituacaoCadastral { get; set; }
 
         [JsonPropertyName("inscricoes_estaduais")]
         public List<object>? InscricoesEstaduais { get; set; }
+    }
+
+    public class MotivoSituacaoCadastral
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("descricao")]
+        public string? Descricao { get; set; }
     }
 
     public class AtividadeSecundaria
