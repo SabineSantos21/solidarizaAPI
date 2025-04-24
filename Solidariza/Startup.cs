@@ -56,8 +56,12 @@ namespace Solidariza
                 };
             });
 
-            //services.AddDbContext<ConnectionDB>(options =>
-            //options.UseMySql(Configuration.GetConnectionString("DefaultConnection"),new MySqlServerVersion(new Version(8, 0, 27))));
+            //var connectiondb = "Server=solidarizadb.mysql.database.azure.com;Database=solidarizadb;Uid=adminSolidariza;Pwd=ADM@Solid#0424;";
+            var connectiondb = Configuration.GetConnectionString("DefaultConnection");
+
+            services.AddDbContext<ConnectionDB>(options =>
+             options.UseMySql(connectiondb,
+                ServerVersion.AutoDetect(connectiondb)));
 
             services.AddCors(options => options.AddPolicy("PolicyCors", builder => builder
                 .AllowAnyOrigin()
