@@ -36,9 +36,6 @@ O Solidariza foi desenvolvido com foco em eficiência, escalabilidade e facilida
 - **Microsoft Azure**  
   Utilizado como provedor de hospedagem pela sua confiabilidade, escalabilidade e alto desempenho. A infraestrutura garante segurança e disponibilidade para aplicações web.
 
-- **Azure Container Instances**  
-  As imagens do sistema são gerenciadas em contêineres, garantindo consistência entre os ambientes de desenvolvimento e produção, além de facilitar o deployment.
-
 ---
 
 ## 👥 Perfis de Usuários e Funcionalidades
