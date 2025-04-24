@@ -16,17 +16,17 @@ namespace Solidariza.Models
 
         public PixType PixType { get; set; }
 
-        public string PixKey { get; set; }
+        public string? PixKey { get; set; }
 
-        public string BeneficiaryName { get; set; }
+        public string? BeneficiaryName { get; set; }
 
-        public string BeneficiaryCity { get; set; }
+        public string? BeneficiaryCity { get; set; }
 
         public string? PixValue { get; set; }
 
-        public string ContactName { get; set; }
+        public string? ContactName { get; set; }
 
-        public string ContactPhone { get; set; }
+        public string? ContactPhone { get; set; }
 
         public virtual User User { get; set; }
 
