@@ -77,8 +77,8 @@ jobs:
       - name: Testes
         run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --verbosity normal
 
-      - name: Publish (garante DLLs NuGet no publish)
-        run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --self-contained false --output ./publish
+      - name: Publish (self-contained para Windows; mude para linux-x64 se preciso)
+        run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --self-contained true --output ./publish
 
       - name: Verificar DLL problemática publicada (Microsoft.Extensions.Logging.Abstractions)
         run: find ./publish -name 'Microsoft.Extensions.Logging.Abstractions.dll' || true
