@@ -66,21 +66,21 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Clean build outputs
-        run: dotnet clean
+        run: dotnet clean --runtime win-x86
 
       - name: Restore dependências
         run: dotnet restore --runtime win-x86
 
-      - name: Build
-        run: dotnet build ./Solidariza/Solidariza.csproj --configuration Release --no-restore
+      - name: Build (win-x86)
+        run: dotnet build ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x86 --no-restore
 
       - name: Testes
-        run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --verbosity normal
+        run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x86 --no-build --verbosity normal
 
       - name: Publish (self-contained para Windows x86)
         run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --output ./publish --self-contained true --runtime win-x86
 
-      - name: Verificar DLL problemática publicada (JwtBearer)
+      - name: Verificar DLL JwtBearer publicada
         run: find ./publish -name 'Microsoft.AspNetCore.Authentication.JwtBearer.dll' || true
 
       - name: Listar todas as DLLs do publish (debug)
