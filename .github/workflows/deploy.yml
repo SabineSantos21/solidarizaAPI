@@ -52,7 +52,6 @@ jobs:
           dotnet build
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
-
   build-and-deploy:
     needs: sonarcloud-analyze
     runs-on: ubuntu-latest
@@ -75,8 +74,11 @@ jobs:
       - name: Testes
         run: dotnet test --configuration Release --verbosity normal
 
-      - name: Publish
-        run: dotnet publish --configuration Release --output ./publish
+      - name: Publish (garante DLLs NuGet no publish)
+        run: dotnet publish --configuration Release --runtime win-x64 --self-contained false --output ./publish
+
+      - name: Verificar DLL problemática publicada (opcional)
+        run: find ./publish -name 'Microsoft.Extensions.Logging.Abstractions.dll'
 
       - name: Listar arquivos publicados
         run: ls -la ./publish
