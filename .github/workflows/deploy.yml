@@ -65,22 +65,28 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Clean build outputs
+        run: dotnet clean
+
       - name: Restore dependências
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build ./Solidariza/Solidariza.csproj --configuration Release --no-restore
 
       - name: Testes
-        run: dotnet test --configuration Release --verbosity normal
+        run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --verbosity normal
 
       - name: Publish (garante DLLs NuGet no publish)
-        run: dotnet publish --configuration Release --runtime win-x64 --self-contained false --output ./publish
+        run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --self-contained false --output ./publish
 
-      - name: Verificar DLL problemática publicada (opcional)
-        run: find ./publish -name 'Microsoft.Extensions.Logging.Abstractions.dll'
+      - name: Verificar DLL problemática publicada (Microsoft.Extensions.Logging.Abstractions)
+        run: find ./publish -name 'Microsoft.Extensions.Logging.Abstractions.dll' || true
 
-      - name: Listar arquivos publicados
+      - name: Listar todas as DLLs do publish (debug)
+        run: find ./publish -name '*.dll'
+
+      - name: Listar arquivos publicados (debug)
         run: ls -la ./publish
 
       - name: Deploy para Azure Web App
