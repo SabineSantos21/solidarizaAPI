@@ -37,6 +37,11 @@ namespace Solidariza
                 });
             });
 
+            // Pega chave JWT do ambiente/configuração (NUNCA HARD CODE!)
+            string jwtKey = Configuration["JwtKey"];
+            if (string.IsNullOrEmpty(jwtKey))
+                throw new Exception("JwtKey não encontrada nas configurações do ambiente!");
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -52,16 +57,17 @@ namespace Solidariza
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = "Solidariza",
                     ValidAudience = "Application",
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("hrjendj372849fnwyd7349299kjdu8nbcoabe99"))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
                 };
             });
 
-            //var connectiondb = "Server=solidarizadb.mysql.database.azure.com;Database=solidarizadb;Uid=adminSolidariza;Pwd=ADM@Solid#0424;";
+            // Pega string de conexão por configuração/variável de ambiente
             var connectiondb = Configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrEmpty(connectiondb))
+                throw new Exception("DefaultConnection não encontrada nas configurações do ambiente!");
 
             services.AddDbContext<ConnectionDB>(options =>
-             options.UseMySql(connectiondb,
-                ServerVersion.AutoDetect(connectiondb)));
+                options.UseMySql(connectiondb, ServerVersion.AutoDetect(connectiondb)));
 
             services.AddCors(options => options.AddPolicy("PolicyCors", builder => builder
                 .AllowAnyOrigin()
@@ -100,4 +106,3 @@ namespace Solidariza
         }
     }
 }
-
