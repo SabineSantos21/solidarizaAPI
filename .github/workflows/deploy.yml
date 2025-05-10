@@ -69,7 +69,7 @@ jobs:
         run: dotnet clean
 
       - name: Restore dependências
-        run: dotnet restore
+        run: dotnet restore --runtime win-x86
 
       - name: Build
         run: dotnet build ./Solidariza/Solidariza.csproj --configuration Release --no-restore
