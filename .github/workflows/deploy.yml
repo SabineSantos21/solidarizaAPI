@@ -66,22 +66,22 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Clean build outputs
-        run: dotnet clean
+        run: dotnet clean --runtime win-x86
 
       - name: Restore dependências
-        run: dotnet restore
+        run: dotnet restore --runtime win-x86
 
-      - name: Build
-        run: dotnet build ./Solidariza/Solidariza.csproj --configuration Release --no-restore
+      - name: Build (win-x86)
+        run: dotnet build ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x86 --no-restore
 
       - name: Testes
-        run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --verbosity normal
+        run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x86 --no-build --verbosity normal
 
-      - name: Publish (self-contained para Windows; mude para linux-x64 se preciso)
-        run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --self-contained true --output ./publish
+      - name: Publish (self-contained para Windows 32 bits)
+        run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --self-contained true --runtime win-x86 --no-build --output ./publish
 
-      - name: Verificar DLL problemática publicada (Microsoft.Extensions.Logging.Abstractions)
-        run: find ./publish -name 'Microsoft.Extensions.Logging.Abstractions.dll' || true
+      - name: Verificar DLL base publicada
+        run: find ./publish -name 'System.Threading.dll' || true
 
       - name: Listar todas as DLLs do publish (debug)
         run: find ./publish -name '*.dll'
