@@ -77,8 +77,8 @@ jobs:
       - name: Testes
         run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --verbosity normal
 
-      - name: Publish (self-contained para Windows x64)
-        run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --output ./publish --self-contained true --runtime win-x64 --no-build
+      - name: Publish (self-contained para Windows x86)
+        run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --output ./publish --self-contained true --runtime win-x86 --no-build
 
       - name: Verificar DLL problemática publicada (JwtBearer)
         run: find ./publish -name 'Microsoft.AspNetCore.Authentication.JwtBearer.dll' || true
