@@ -2,6 +2,7 @@ using Solidariza;
 using Solidariza.Services;
 using Microsoft.AspNetCore.Mvc;
 using Solidariza.Models;
+using Solidariza.Common;
 
 namespace Solidariza.Controllers
 {
@@ -21,7 +22,14 @@ namespace Solidariza.Controllers
         {
             LoginService loginService = new LoginService(_dbContext);
 
-            User user = loginService.ValidarCredenciais(login.Email, login.Password);
+            PasswordHash passwordHash = new PasswordHash();
+
+            var hashPassword = passwordHash.HashPassword(login.Password);
+            var verifyPassword = passwordHash.VerifyPassword(login.Password, hashPassword);
+            
+            if (verifyPassword == false) return BadRequest();
+
+            User? user = loginService.ValidarCredenciais(login.Email);
 
             if ( user != null)
             {

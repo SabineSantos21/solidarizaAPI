@@ -3,6 +3,8 @@ using Solidariza.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Solidariza.Models.Enum;
+using Microsoft.AspNetCore.Identity;
+using Solidariza.Common;
 
 namespace Solidariza.Controllers
 {
@@ -38,6 +40,17 @@ namespace Solidariza.Controllers
             try
             {
                 UserService usuarioService = new UserService(_dbContext);
+
+                User? userVerify = await usuarioService.GetUserByEmail(newUser.Email);
+                
+                if(userVerify != null)
+                {
+                    return BadRequest("Este e-mail não está mais disponível para cadastro. Por favor, utilize outro e-mail ou, se já possui um cadastro, recupere o acesso ao anterior.");
+                } 
+
+                PasswordHash passwordHash = new PasswordHash();
+                newUser.Password = passwordHash.HashPassword(newUser.Password);
+
                 User user = await usuarioService.CreateUser(newUser);
 
                 NewProfile newProfile = new NewProfile()
