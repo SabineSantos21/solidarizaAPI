@@ -19,7 +19,7 @@ jobs:
       - name: Checkout do código
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Melhor para análise do sonar
+          fetch-depth: 0
 
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
@@ -77,11 +77,11 @@ jobs:
       - name: Testes
         run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --verbosity normal
 
-      - name: Publish (framework-dependent para Windows 32-bit)
-        run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --output ./publish
+      - name: Publish (self-contained para Windows x64)
+        run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --output ./publish --self-contained true --runtime win-x64 --no-build
 
-      - name: Verificar DLL problemática publicada (Microsoft.Extensions.Logging.Abstractions)
-        run: find ./publish -name 'Microsoft.Extensions.Logging.Abstractions.dll' || true
+      - name: Verificar DLL problemática publicada (JwtBearer)
+        run: find ./publish -name 'Microsoft.AspNetCore.Authentication.JwtBearer.dll' || true
 
       - name: Listar todas as DLLs do publish (debug)
         run: find ./publish -name '*.dll'
