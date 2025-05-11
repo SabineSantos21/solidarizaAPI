@@ -83,8 +83,15 @@ jobs:
       - name: Verifique se DLL base está publicada
         run: find ./publish -name 'System.Private.CoreLib.dll' || true
 
-      - name: Listar todas as DLLs do publish
-        run: find ./publish -name '*.dll'
+      - name: Listar arquivos publicados
+        run: ls -lh ./publish
+
+      - name: Procurar DLLs base (corelib, threading, hostfxr)
+        run: |
+          find ./publish -name 'System.Private.CoreLib.dll'
+          find ./publish -name 'System.Threading.dll'
+          find ./publish -name 'hostfxr.dll'
+          find ./publish -name 'hostpolicy.dll'
 
       - name: Deploy para Azure Web App
         uses: azure/webapps-deploy@v3
