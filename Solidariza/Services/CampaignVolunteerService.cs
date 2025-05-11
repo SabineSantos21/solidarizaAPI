@@ -35,40 +35,29 @@ namespace Solidariza.Services
 
         public async Task<CampaignVolunteer> CreateCampaignVolunteer(NewCampaignVolunteer newCampaignVolunteer)
         {
-            try
-            {
-                CampaignVolunteer campaignVolunteer = new CampaignVolunteer()
-                {
-                    CampaignId = newCampaignVolunteer.CampaignId,
-                    UserId = newCampaignVolunteer.UserId,
-                    IsApproved = CampaignVolunteerStatus.PENDING
-                };
 
-                _dbContext.Campaign_Volunteers.Add(campaignVolunteer);
-                await _dbContext.SaveChangesAsync();
-
-                return campaignVolunteer;
-            }
-            catch (Exception ex)
+            CampaignVolunteer campaignVolunteer = new CampaignVolunteer()
             {
-                throw ex;
-            }
+                CampaignId = newCampaignVolunteer.CampaignId,
+                UserId = newCampaignVolunteer.UserId,
+                IsApproved = CampaignVolunteerStatus.PENDING
+            };
+
+            _dbContext.Campaign_Volunteers.Add(campaignVolunteer);
+            await _dbContext.SaveChangesAsync();
+
+            return campaignVolunteer;
          
         }
 
         public async Task AtualizarCampaignVolunteer(CampaignVolunteer existingCampaignVolunteer, CampaignVolunteer campaignVolunteer)
         {
-            try
-            {
-                existingCampaignVolunteer.IsApproved = campaignVolunteer.IsApproved;
+
+            existingCampaignVolunteer.IsApproved = campaignVolunteer.IsApproved;
                 
-                _dbContext.Campaign_Volunteers.Update(existingCampaignVolunteer);
-                await _dbContext.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            _dbContext.Campaign_Volunteers.Update(existingCampaignVolunteer);
+            await _dbContext.SaveChangesAsync();
+
         }
 
         public async Task DeletarCampaignVolunteer(CampaignVolunteer campaignVolunteer)

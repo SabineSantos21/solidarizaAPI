@@ -39,55 +39,44 @@ namespace Solidariza.Services
 
         public async Task<Campaign> CreateCampaign(NewCampaign newCampaign)
         {
-            try
-            {
-                Campaign campaign = new Campaign()
-                {
-                    Title = newCampaign.Title,
-                    Description = newCampaign.Description,
-                    EndDate = Convert.ToDateTime(newCampaign.EndDate),
-                    StartDate = Convert.ToDateTime(newCampaign.StartDate),
-                    Status = (CampaignStatus)newCampaign.Status,
-                    UserId = newCampaign.UserId,
-                    Type = (CampaignType)newCampaign.Type,
-                    Address = newCampaign.Address,
-                    State = newCampaign.State,
-                    City = newCampaign.City,
-                };
 
-                _dbContext.Campaign.Add(campaign);
-                await _dbContext.SaveChangesAsync();
-
-                return campaign;
-            }
-            catch (Exception ex)
+            Campaign campaign = new Campaign()
             {
-                throw ex;
-            }
+                Title = newCampaign.Title,
+                Description = newCampaign.Description,
+                EndDate = Convert.ToDateTime(newCampaign.EndDate),
+                StartDate = Convert.ToDateTime(newCampaign.StartDate),
+                Status = (CampaignStatus)newCampaign.Status,
+                UserId = newCampaign.UserId,
+                Type = (CampaignType)newCampaign.Type,
+                Address = newCampaign.Address,
+                State = newCampaign.State,
+                City = newCampaign.City,
+            };
+
+            _dbContext.Campaign.Add(campaign);
+            await _dbContext.SaveChangesAsync();
+
+            return campaign;
          
         }
 
         public async Task AtualizarCampaign(Campaign existingCampaign, Campaign campaign)
         {
-            try
-            {
-                existingCampaign.Title = campaign.Title;
-                existingCampaign.Description = campaign.Description;
-                existingCampaign.EndDate = campaign.EndDate;
-                existingCampaign.StartDate = campaign.StartDate;
-                existingCampaign.Status = campaign.Status;
-                existingCampaign.Type = campaign.Type;
-                existingCampaign.State = campaign.State;
-                existingCampaign.City = campaign.City;
-                existingCampaign.Address = campaign.Address;
 
-                _dbContext.Campaign.Update(existingCampaign);
-                await _dbContext.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            existingCampaign.Title = campaign.Title;
+            existingCampaign.Description = campaign.Description;
+            existingCampaign.EndDate = campaign.EndDate;
+            existingCampaign.StartDate = campaign.StartDate;
+            existingCampaign.Status = campaign.Status;
+            existingCampaign.Type = campaign.Type;
+            existingCampaign.State = campaign.State;
+            existingCampaign.City = campaign.City;
+            existingCampaign.Address = campaign.Address;
+
+            _dbContext.Campaign.Update(existingCampaign);
+            await _dbContext.SaveChangesAsync();
+
         }
 
         public async Task DeletarCampaign(Campaign campaign)

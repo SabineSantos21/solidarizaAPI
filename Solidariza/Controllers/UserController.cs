@@ -49,7 +49,12 @@ namespace Solidariza.Controllers
                 if(userVerify != null)
                 {
                     return BadRequest("Este e-mail não está mais disponível para cadastro. Por favor, utilize outro e-mail ou, se já possui um cadastro, recupere o acesso ao anterior.");
-                } 
+                }
+
+                if (string.IsNullOrEmpty(newUser.Password))
+                {
+                    return BadRequest("A senha é obrigatória.");
+                }
 
                 PasswordHash passwordHash = new PasswordHash();
                 newUser.Password = passwordHash.HashPassword(newUser.Password);

@@ -59,11 +59,11 @@ namespace Solidariza.Models
     {
         public int UserId { get; set; }
 
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         public int Type { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public DateTime? StartDate { get; set; }
 

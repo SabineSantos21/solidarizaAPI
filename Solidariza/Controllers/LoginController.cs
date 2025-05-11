@@ -27,10 +27,20 @@ namespace Solidariza.Controllers
 
             PasswordHash passwordHash = new PasswordHash();
 
+            if (string.IsNullOrEmpty(login.Password))
+            {
+                return BadRequest("A senha é obrigatória.");
+            }
+
             var hashPassword = passwordHash.HashPassword(login.Password);
             var verifyPassword = passwordHash.VerifyPassword(login.Password, hashPassword);
             
             if (verifyPassword == false) return BadRequest();
+
+            if (string.IsNullOrEmpty(login.Email))
+            {
+                return BadRequest("A email é obrigatória.");
+            }
 
             User? user = loginService.ValidarCredenciais(login.Email);
 

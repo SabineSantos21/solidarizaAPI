@@ -1,11 +1,8 @@
-using Solidariza;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
+
 
 namespace Solidariza
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
