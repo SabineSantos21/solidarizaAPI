@@ -50,8 +50,7 @@ namespace Solidariza.Controllers
             }
             catch (Exception ex)
             {
-
-                throw ex;
+                return Problem(ex.Message);
             }
             
         }
@@ -134,8 +133,7 @@ namespace Solidariza.Controllers
             }
             catch (Exception ex)
             {
-
-                throw ex;
+                return Problem(ex.Message);
             }
 
         }

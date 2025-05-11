@@ -9,7 +9,7 @@ namespace Solidariza.Models
 
         public int UserId { get; set; }
 
-        public virtual User User { get; set; }
+        public required virtual User User { get; set; }
 
         public string? Name { get; set; }
 
@@ -32,7 +32,7 @@ namespace Solidariza.Models
 
         public int UserId { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         public string? Description { get; set; }
 
@@ -49,7 +49,7 @@ namespace Solidariza.Models
     
     public class UpdateProfile
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         public string? Description { get; set; }
 

@@ -10,18 +10,18 @@ namespace Solidariza.Models
 
         public LinkType Type { get; set; }
 
-        public string Url { get; set; }
+        public string? Url { get; set; }
 
         public int ProfileId { get; set; }
 
-        public virtual Profile Profile { get; set; }
+        public required virtual Profile Profile { get; set; }
     }
 
     public class NewLink
     {
         public LinkType Type { get; set; }
 
-        public string Url { get; set; }
+        public string? Url { get; set; }
 
         public int ProfileId { get; set; }
     }

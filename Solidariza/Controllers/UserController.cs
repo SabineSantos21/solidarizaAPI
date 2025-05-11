@@ -1,9 +1,7 @@
 using Solidariza.Models;
 using Solidariza.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Solidariza.Models.Enum;
-using Microsoft.AspNetCore.Identity;
 using Solidariza.Common;
 
 namespace Solidariza.Controllers
@@ -41,6 +39,11 @@ namespace Solidariza.Controllers
             {
                 UserService usuarioService = new UserService(_dbContext);
 
+                if (string.IsNullOrEmpty(newUser.Email))
+                {
+                    return BadRequest("O e-mail é obrigatório.");
+                }
+
                 User? userVerify = await usuarioService.GetUserByEmail(newUser.Email);
                 
                 if(userVerify != null)
@@ -64,6 +67,8 @@ namespace Solidariza.Controllers
 
                 if (user.Type == UserType.Organization)
                 {
+                    if (user.DocumentNumber == null) return BadRequest("Número do documento é obrigatório");
+
                     ValidateOrganizationService validateOrganizationService = new ValidateOrganizationService();
                     ConsultCNPJResponse organizationValid = await validateOrganizationService.ConsultCNPJ(user.DocumentNumber);
 

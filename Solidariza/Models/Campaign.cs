@@ -9,13 +9,13 @@ namespace Solidariza.Models
 
         public int UserId { get; set; }
 
-        public virtual User User { get; set; }
+        public required virtual User User { get; set; }
 
         public CampaignType Type { get; set; }
 
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public DateTime StartDate { get; set; }
 
@@ -35,11 +35,11 @@ namespace Solidariza.Models
     {
         public int UserId { get; set; }
 
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         public int Type { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public string? StartDate { get; set; }
 

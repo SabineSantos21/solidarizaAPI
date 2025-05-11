@@ -28,7 +28,7 @@ namespace Solidariza.Models
 
         public string? ContactPhone { get; set; }
 
-        public virtual User User { get; set; }
+        public required virtual User User { get; set; }
 
         [NotMapped]
         public DonationQRCodeResponse? DonationQRCode { get; set; }
@@ -40,17 +40,17 @@ namespace Solidariza.Models
 
         public int PixType { get; set; }
 
-        public string PixKey { get; set; }
+        public string? PixKey { get; set; }
 
-        public string BeneficiaryName { get; set; }
+        public string? BeneficiaryName { get; set; }
 
-        public string BeneficiaryCity { get; set; }
+        public string? BeneficiaryCity { get; set; }
 
         public string? PixValue { get; set; }
 
-        public string ContactName { get; set; }
+        public string? ContactName { get; set; }
 
-        public string ContactPhone { get; set; }
+        public string? ContactPhone { get; set; }
     }
 
     public class NewOrganizationInfoCNPJValid 
@@ -66,16 +66,16 @@ namespace Solidariza.Models
     {
         public int PixType { get; set; }
 
-        public string PixKey { get; set; }
+        public string? PixKey { get; set; }
 
-        public string BeneficiaryName { get; set; }
+        public string? BeneficiaryName { get; set; }
 
-        public string BeneficiaryCity { get; set; }
+        public string? BeneficiaryCity { get; set; }
 
         public string? PixValue { get; set; }
 
-        public string ContactName { get; set; }
+        public string? ContactName { get; set; }
 
-        public string ContactPhone { get; set; }
+        public string? ContactPhone { get; set; }
     }
 }

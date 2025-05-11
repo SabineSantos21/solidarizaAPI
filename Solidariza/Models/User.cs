@@ -8,7 +8,7 @@ namespace Solidariza.Models
     {
         public int UserId { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         public UserType Type { get; set; }
 
@@ -43,7 +43,7 @@ namespace Solidariza.Models
 
         public string? Phone { get; set; }
 
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         public string? ContactName { get; set; }
 
@@ -54,7 +54,7 @@ namespace Solidariza.Models
     {
         public int UserId { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         public UserType Type { get; set; }
 
