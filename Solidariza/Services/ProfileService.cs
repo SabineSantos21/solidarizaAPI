@@ -32,7 +32,10 @@ namespace Solidariza.Services
 
         public async Task<List<Profile>> GetProfilesOrganizationGetProfilesOrganization()
         {
-            return await _dbContext.Profile.Include(c => c.User).Where(p => p.User.Type == UserType.Organization).ToListAsync();
+            return await _dbContext.Profile
+                .Include(c => c.User)
+                .Where(p => p.User != null && p.User.Type == UserType.Organization)
+                .ToListAsync();
         }
 
         public async Task<Profile> CreateProfile(NewProfile newProfile)

@@ -22,13 +22,13 @@ namespace Solidariza.Services
             Campaign? campaign = await campaignService.GetCampaignById(campaignId);
 
             if(campaign == null) 
-                throw new Exception("Não foi possível localizar a campanha");
+                throw new InvalidOperationException("Não foi possível localizar a campanha");
 
             OrganizationInfoService organizationInfoService = new OrganizationInfoService(_dbContext);
             OrganizationInfo? organizationInfo = await organizationInfoService.GetOrganizationInfoByUserId(campaign.UserId);
 
             if (organizationInfo == null)
-                throw new Exception("Não foi possível localizar a as informações da organização");
+                throw new InvalidOperationException("Não foi possível localizar a as informações da organização");
 
             DonationQRCodeRequest donationQRCodeRequest = new DonationQRCodeRequest()
             {

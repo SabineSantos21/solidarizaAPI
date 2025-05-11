@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using Microsoft.Extensions.Configuration;
 
 namespace Solidariza
 {
@@ -38,7 +37,7 @@ namespace Solidariza
             });
 
             // Pega chave JWT do ambiente/configuração (NUNCA HARD CODE!)
-            string jwtKey = Configuration["JwtKey"];
+            string? jwtKey = Configuration["JwtKey"];
             if (string.IsNullOrEmpty(jwtKey))
                 throw new Exception("JwtKey não encontrada nas configurações do ambiente!");
 
@@ -63,8 +62,9 @@ namespace Solidariza
 
             // Pega string de conexão por configuração/variável de ambiente
             var connectiondb = Configuration.GetConnectionString("DefaultConnection");
+
             if (string.IsNullOrEmpty(connectiondb))
-                throw new Exception("DefaultConnection não encontrada nas configurações do ambiente!");
+                throw new InvalidOperationException("DefaultConnection não encontrada nas configurações do ambiente!");
 
             services.AddDbContext<ConnectionDB>(options =>
                 options.UseMySql(connectiondb, ServerVersion.AutoDetect(connectiondb)));

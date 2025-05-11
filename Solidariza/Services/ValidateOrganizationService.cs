@@ -38,9 +38,19 @@ namespace Solidariza.Services
                 };
             }
 
+            int[] NaturezasPermitidas = [3999, 3069, 3220, 2143, 2232, 2281, 4083];
+
+            if (organization.NaturezaJuridica == null || organization.NaturezaJuridica.Id == null)
+            {
+                return new ConsultCNPJResponse()
+                {
+                    DisapprovalReason = "Empresa não possui Natureza Jurídica",
+                    IsValid = false
+                };
+            }
+
             bool isSemFinsLucrativos = organization.NaturezaJuridica != null &&
-                                        new[] { 3999, 3069, 3220, 2143, 2232, 2281, 4083 }
-                                        .Contains(int.Parse(organization.NaturezaJuridica.Id));
+                                        NaturezasPermitidas.Contains(int.Parse(organization.NaturezaJuridica.Id));
 
             if (isSemFinsLucrativos == false) {
                 return new ConsultCNPJResponse()
