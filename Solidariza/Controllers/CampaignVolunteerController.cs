@@ -84,11 +84,13 @@ namespace Solidariza.Controllers
             {
                 CampaignVolunteerService campaignVolunteerService = new CampaignVolunteerService(_dbContext);
 
-                var existingCampaignVolunteer = _dbContext.Campaign_Volunteers.Where(c => c.CampaignId == newCampaignVolunteer.CampaignId && c.UserId == newCampaignVolunteer.UserId).ToList();
+                var existingCampaignVolunteer = _dbContext.Campaign_Volunteers
+                 .Where(c => c.CampaignId == newCampaignVolunteer.CampaignId && c.UserId == newCampaignVolunteer.UserId)
+                 .ToList();
 
                 if (existingCampaignVolunteer.Count > 0)
                 {
-                    var campaignVolunteerCreated = existingCampaignVolunteer.FirstOrDefault();
+                    var campaignVolunteerCreated = existingCampaignVolunteer.First();
                     return Ok(campaignVolunteerCreated);
                 }
 

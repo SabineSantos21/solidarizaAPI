@@ -18,8 +18,11 @@ namespace Solidariza.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Login(Login login)
         {
+
             LoginService loginService = new LoginService(_dbContext);
 
             PasswordHash passwordHash = new PasswordHash();

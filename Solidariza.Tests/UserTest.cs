@@ -13,7 +13,6 @@ namespace Solidariza.Tests
     public class UserControllerTests
     {
         private readonly UserController _controller;
-        private readonly Mock<UserService> _mockUserService;
         private readonly ConnectionDB _dbContext;
 
         public UserControllerTests()

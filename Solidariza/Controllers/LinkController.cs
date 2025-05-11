@@ -21,7 +21,7 @@ namespace Solidariza.Controllers
         {
             LinkService linkService = new LinkService(_dbContext);
 
-            List<Link?> link = await linkService.GetLinkByProfileId(profileId);
+            List<Link> link = await linkService.GetLinkByProfileId(profileId);
 
             return Ok(link);
         }
