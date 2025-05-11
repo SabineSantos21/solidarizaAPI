@@ -25,14 +25,9 @@ namespace Solidariza.Services
 
         public async Task<Profile?> GetProfileByUserId(int userId)
         {
-            try
-            {
-                return await _dbContext.Profile.Where(p => p.UserId == userId).FirstOrDefaultAsync();
-            }
-            catch(Exception ex)
-            {
-                throw ex;
-            }
+
+            return await _dbContext.Profile.Where(p => p.UserId == userId).FirstOrDefaultAsync();
+
         }
 
         public async Task<List<Profile>> GetProfilesOrganizationGetProfilesOrganization()
@@ -42,63 +37,53 @@ namespace Solidariza.Services
 
         public async Task<Profile> CreateProfile(NewProfile newProfile)
         {
-            try
-            {
-                Profile profile = new Profile()
-                {
-                    Name = newProfile.Name,
-                    Description = newProfile.Description,
-                    Address = newProfile.Address,
-                    UserId = newProfile.UserId,
-                    Zip = newProfile.Zip,
-                    City = newProfile.City,
-                    State = newProfile.State,
-                    Phone = newProfile.Phone,
-                };
 
-                _dbContext.Profile.Add(profile);
-                await _dbContext.SaveChangesAsync();
-
-                return profile;
-            }
-            catch (Exception ex)
+            Profile profile = new Profile()
             {
-                throw ex;
-            }
+                Name = newProfile.Name,
+                Description = newProfile.Description,
+                Address = newProfile.Address,
+                UserId = newProfile.UserId,
+                Zip = newProfile.Zip,
+                City = newProfile.City,
+                State = newProfile.State,
+                Phone = newProfile.Phone,
+            };
+
+            _dbContext.Profile.Add(profile);
+            await _dbContext.SaveChangesAsync();
+
+            return profile;
+
          
         }
 
         public async Task AtualizarProfile(Profile existingProfile, Profile profile)
         {
-            try
-            {
-                existingProfile.Name = profile.Name;
-                existingProfile.Description = profile.Description;
-                existingProfile.Address = profile.Address;
-                existingProfile.UserId = profile.UserId;
-                existingProfile.Zip = profile.Zip;
-                existingProfile.City = profile.City;
-                existingProfile.State = profile.State;
-                existingProfile.Phone = profile.Phone;
 
-                _dbContext.Profile.Update(existingProfile);
+            existingProfile.Name = profile.Name;
+            existingProfile.Description = profile.Description;
+            existingProfile.Address = profile.Address;
+            existingProfile.UserId = profile.UserId;
+            existingProfile.Zip = profile.Zip;
+            existingProfile.City = profile.City;
+            existingProfile.State = profile.State;
+            existingProfile.Phone = profile.Phone;
+
+            _dbContext.Profile.Update(existingProfile);
+            await _dbContext.SaveChangesAsync();
+
+            UserService userService = new UserService(_dbContext);
+            User? existingUser = await userService.GetUserById(existingProfile.UserId);
+
+            if(existingUser != null)
+            {
+                existingUser.Name = profile.Name;
+
+                _dbContext.User.Update(existingUser);
                 await _dbContext.SaveChangesAsync();
-
-                UserService userService = new UserService(_dbContext);
-                User? existingUser = await userService.GetUserById(existingProfile.UserId);
-
-                if(existingUser != null)
-                {
-                    existingUser.Name = profile.Name;
-
-                    _dbContext.User.Update(existingUser);
-                    await _dbContext.SaveChangesAsync();
-                }
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+
         }
 
         public async Task DeletarProfile(Profile profile)

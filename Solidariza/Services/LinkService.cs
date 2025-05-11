@@ -20,24 +20,18 @@ namespace Solidariza.Services
 
         public async Task<Link> CreateLink(NewLink newLink)
         {
-            try
-            {
-                Link link = new Link()
-                {
-                    Url = newLink.Url,
-                    Type = newLink.Type,
-                    ProfileId = newLink.ProfileId,
-                };
 
-                _dbContext.Link.Add(link);
-                await _dbContext.SaveChangesAsync();
-
-                return link;
-            }
-            catch (Exception ex)
+            Link link = new Link()
             {
-                throw ex;
-            }
+                Url = newLink.Url,
+                Type = newLink.Type,
+                ProfileId = newLink.ProfileId,
+            };
+
+            _dbContext.Link.Add(link);
+            await _dbContext.SaveChangesAsync();
+
+            return link;
          
         }
 

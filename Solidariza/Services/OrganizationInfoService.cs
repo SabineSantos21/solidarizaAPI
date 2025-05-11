@@ -25,91 +25,69 @@ namespace Solidariza.Services
 
         public async Task<OrganizationInfo> CreateOrganizationInfo(NewOrganizationInfo newOrganizationInfo)
         {
-            try
-            {
-                OrganizationInfo organizationInfo = new OrganizationInfo()
-                {
-                    UserId = newOrganizationInfo.UserId,
-                    ContactName = newOrganizationInfo.ContactName,
-                    ContactPhone = newOrganizationInfo.ContactPhone,
-                    PixKey = newOrganizationInfo.PixKey,
-                    PixType = (PixType) newOrganizationInfo.PixType,
-                    BeneficiaryName = newOrganizationInfo.BeneficiaryName,
-                    BeneficiaryCity = newOrganizationInfo.BeneficiaryCity,
-                    PixValue = newOrganizationInfo.PixValue,
-                };
 
-                _dbContext.Organization_Info.Add(organizationInfo);
-                await _dbContext.SaveChangesAsync();
-
-                return organizationInfo;
-            }
-            catch (Exception ex)
+            OrganizationInfo organizationInfo = new OrganizationInfo()
             {
-                throw ex;
-            }
+                UserId = newOrganizationInfo.UserId,
+                ContactName = newOrganizationInfo.ContactName,
+                ContactPhone = newOrganizationInfo.ContactPhone,
+                PixKey = newOrganizationInfo.PixKey,
+                PixType = (PixType) newOrganizationInfo.PixType,
+                BeneficiaryName = newOrganizationInfo.BeneficiaryName,
+                BeneficiaryCity = newOrganizationInfo.BeneficiaryCity,
+                PixValue = newOrganizationInfo.PixValue,
+            };
+
+            _dbContext.Organization_Info.Add(organizationInfo);
+            await _dbContext.SaveChangesAsync();
+
+            return organizationInfo;
          
         }
 
         public async Task<OrganizationInfo> CreateOrganizationInfoCPNJValid(NewOrganizationInfoCNPJValid newOrganizationInfo)
         {
-            try
-            {
-                OrganizationInfo organizationInfo = new OrganizationInfo()
-                {
-                    UserId = newOrganizationInfo.UserId,
-                    IsOrganizationApproved = newOrganizationInfo.IsOrganizationApproved,
-                    DisapprovalReason = newOrganizationInfo.DisapprovalReason
-                };
 
-                _dbContext.Organization_Info.Add(organizationInfo);
-                await _dbContext.SaveChangesAsync();
-
-                return organizationInfo;
-            }
-            catch (Exception ex)
+            OrganizationInfo organizationInfo = new OrganizationInfo()
             {
-                throw ex;
-            }
+                UserId = newOrganizationInfo.UserId,
+                IsOrganizationApproved = newOrganizationInfo.IsOrganizationApproved,
+                DisapprovalReason = newOrganizationInfo.DisapprovalReason
+            };
+
+            _dbContext.Organization_Info.Add(organizationInfo);
+            await _dbContext.SaveChangesAsync();
+
+            return organizationInfo;
 
         }
 
         public async Task AtualizarOrganizationInfo(OrganizationInfo existingOrganizationInfo, OrganizationInfo OrganizationInfo)
         {
-            try
-            {
-                existingOrganizationInfo.PixKey = OrganizationInfo.PixKey;
-                existingOrganizationInfo.ContactPhone = existingOrganizationInfo.ContactPhone;
-                existingOrganizationInfo.ContactName = existingOrganizationInfo.ContactName;
-                existingOrganizationInfo.PixType = existingOrganizationInfo.PixType;
-                existingOrganizationInfo.BeneficiaryName = existingOrganizationInfo.BeneficiaryName;
-                existingOrganizationInfo.BeneficiaryCity = existingOrganizationInfo.BeneficiaryCity;
 
-                _dbContext.Organization_Info.Update(existingOrganizationInfo);
-                await _dbContext.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            existingOrganizationInfo.PixKey = OrganizationInfo.PixKey;
+            existingOrganizationInfo.ContactPhone = existingOrganizationInfo.ContactPhone;
+            existingOrganizationInfo.ContactName = existingOrganizationInfo.ContactName;
+            existingOrganizationInfo.PixType = existingOrganizationInfo.PixType;
+            existingOrganizationInfo.BeneficiaryName = existingOrganizationInfo.BeneficiaryName;
+            existingOrganizationInfo.BeneficiaryCity = existingOrganizationInfo.BeneficiaryCity;
+
+            _dbContext.Organization_Info.Update(existingOrganizationInfo);
+            await _dbContext.SaveChangesAsync();
+
         }
 
         public async Task<OrganizationInfo> AtualizarOrganizationInfoValidate(OrganizationInfo existingOrganizationInfo, OrganizationInfo OrganizationInfo)
         {
-            try
-            {
-                existingOrganizationInfo.DisapprovalReason = OrganizationInfo.DisapprovalReason;
-                existingOrganizationInfo.IsOrganizationApproved = existingOrganizationInfo.IsOrganizationApproved;
 
-                _dbContext.Organization_Info.Update(existingOrganizationInfo);
-                await _dbContext.SaveChangesAsync();
+            existingOrganizationInfo.DisapprovalReason = OrganizationInfo.DisapprovalReason;
+            existingOrganizationInfo.IsOrganizationApproved = existingOrganizationInfo.IsOrganizationApproved;
 
-                return existingOrganizationInfo;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            _dbContext.Organization_Info.Update(existingOrganizationInfo);
+            await _dbContext.SaveChangesAsync();
+
+            return existingOrganizationInfo;
+          
         }
 
         public async Task DeleteOrganizationInfo(OrganizationInfo organizationInfo)

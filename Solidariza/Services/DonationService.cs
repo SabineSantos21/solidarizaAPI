@@ -1,8 +1,5 @@
 ﻿using Solidariza.Models;
-using Microsoft.EntityFrameworkCore;
-using Solidariza.Models.Enum;
 using System.Text.Json;
-using System.Net.Http;
 using System.Text;
 
 namespace Solidariza.Services
@@ -20,39 +17,33 @@ namespace Solidariza.Services
 
         public async Task<OrganizationInfo> GetQRCodePixByCampaignId(int campaignId)
         {
-            try
+
+            CampaignService campaignService =  new CampaignService(_dbContext);
+            Campaign? campaign = await campaignService.GetCampaignById(campaignId);
+
+            if(campaign == null) 
+                throw new Exception("Não foi possível localizar a campanha");
+
+            OrganizationInfoService organizationInfoService = new OrganizationInfoService(_dbContext);
+            OrganizationInfo? organizationInfo = await organizationInfoService.GetOrganizationInfoByUserId(campaign.UserId);
+
+            if (organizationInfo == null)
+                throw new Exception("Não foi possível localizar a as informações da organização");
+
+            DonationQRCodeRequest donationQRCodeRequest = new DonationQRCodeRequest()
             {
-                CampaignService campaignService =  new CampaignService(_dbContext);
-                Campaign campaign = await campaignService.GetCampaignById(campaignId);
+                Key = organizationInfo.PixKey,
+                Key_type = organizationInfo.PixType.ToString(),
+                Name = organizationInfo.BeneficiaryName,
+                City = organizationInfo.BeneficiaryCity
+            };
 
-                if(campaign == null) 
-                    throw new Exception("Não foi possível localizar a campanha");
+            var pixQrCodeJson = GetDonationQRCode(donationQRCodeRequest);
+            var pixQrCode = JsonSerializer.Deserialize<DonationQRCodeResponse>(await pixQrCodeJson);
 
-                OrganizationInfoService organizationInfoService = new OrganizationInfoService(_dbContext);
-                OrganizationInfo organizationInfo = await organizationInfoService.GetOrganizationInfoByUserId(campaign.UserId);
+            organizationInfo.DonationQRCode = pixQrCode;
 
-                if (campaign == null)
-                    throw new Exception("Não foi possível localizar a as informações da organização");
-
-                DonationQRCodeRequest donationQRCodeRequest = new DonationQRCodeRequest()
-                {
-                    Key = organizationInfo.PixKey,
-                    Key_type = organizationInfo.PixType.ToString(),
-                    Name = organizationInfo.BeneficiaryName,
-                    City = organizationInfo.BeneficiaryCity
-                };
-
-                var pixQrCodeJson = GetDonationQRCode(donationQRCodeRequest);
-                var pixQrCode = JsonSerializer.Deserialize<DonationQRCodeResponse>(await pixQrCodeJson);
-
-                organizationInfo.DonationQRCode = pixQrCode;
-
-                return organizationInfo;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            return organizationInfo;
         }
 
         public async Task<string> GetDonationQRCode(DonationQRCodeRequest donationQRCodeRequest)

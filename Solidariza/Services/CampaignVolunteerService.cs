@@ -30,7 +30,17 @@ namespace Solidariza.Services
 
         public async Task<List<CampaignVolunteer>> GetCampaignVolunteersByUserIdAndAproved(int id)
         {
-            return await _dbContext.Campaign_Volunteers.Include(c => c.Campaign).Include(c => c.User).Include(c => c.Campaign.User).Where(p => p.UserId == id && p.IsApproved == CampaignVolunteerStatus.APROVED).ToListAsync();
+            return await _dbContext.Campaign_Volunteers
+                .Where(p =>
+                    p.UserId == id &&
+                    p.IsApproved == CampaignVolunteerStatus.APROVED &&
+                    p.Campaign != null &&
+                    p.User != null &&
+                    p.Campaign.User != null
+                )
+                .Include(c => c.Campaign)
+                .Include(c => c.User)
+                .ToListAsync();
         }
 
         public async Task<CampaignVolunteer> CreateCampaignVolunteer(NewCampaignVolunteer newCampaignVolunteer)

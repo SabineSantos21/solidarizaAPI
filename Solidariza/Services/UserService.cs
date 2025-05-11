@@ -35,48 +35,26 @@ namespace Solidariza.Services
 
         public async Task<User> CreateUser(NewUser newUser)
         {
-            try
+  
+            User user = new User()
             {
-                
-                User user = new User()
-                {
-                    Name = newUser.Name,
-                    Type = (UserType)newUser.Type,
-                    DocumentNumber = newUser.DocumentNumber,
-                    DocumentType = newUser.DocumentType != null ? (DocumentType)newUser.DocumentType : null,
-                    Phone = newUser.Phone,
-                    Email = newUser.Email,
-                    CreationDate = DateTime.UtcNow,
-                    IsActive = true,
-                    Password = newUser.Password,
-                };
+                Name = newUser.Name,
+                Type = (UserType)newUser.Type,
+                DocumentNumber = newUser.DocumentNumber,
+                DocumentType = newUser.DocumentType != null ? (DocumentType)newUser.DocumentType : null,
+                Phone = newUser.Phone,
+                Email = newUser.Email,
+                CreationDate = DateTime.UtcNow,
+                IsActive = true,
+                Password = newUser.Password,
+            };
 
-                _dbContext.User.Add(user);
-                await _dbContext.SaveChangesAsync();
+            _dbContext.User.Add(user);
+            await _dbContext.SaveChangesAsync();
 
-                return user;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            return user;
          
         }
 
-        //public async Task AtualizarUsuario(Usuario existingUsuario, Usuario usuario)
-        //{
-        //    existingUsuario.Nome = usuario.Nome;
-        //    existingUsuario.Ativo = usuario.Ativo;
-        //    existingUsuario.Data_modificacao = DateTime.Now;
-
-        //    _dbContext.TbUsuario.Update(existingUsuario);
-        //    await _dbContext.SaveChangesAsync();
-        //}
-
-        //public async Task DeletarUsuario(Usuario usuario)
-        //{
-        //    _dbContext.TbUsuario.Remove(usuario);
-        //    await _dbContext.SaveChangesAsync();
-        //}
     }
 }
