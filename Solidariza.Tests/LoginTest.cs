@@ -31,7 +31,7 @@ namespace Solidariza.Tests
             _controller = new LoginController(_dbContext);
         }
 
-        private void SeedDatabase(ConnectionDB dbContext)
+        private static void SeedDatabase(ConnectionDB dbContext)
         {
             dbContext.User.Add(new User
             {

@@ -30,7 +30,7 @@ namespace Solidariza.Tests
             _controller = new ProfileController(_dbContext);
         }
 
-        private void SeedDatabase(ConnectionDB dbContext)
+        private static void SeedDatabase(ConnectionDB dbContext)
         {
             if (!dbContext.Profile.Any())
             {

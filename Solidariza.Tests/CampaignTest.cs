@@ -35,7 +35,7 @@ namespace Solidariza.Tests
             _controller = new CampaignController(_dbContext);
         }
 
-        private void SeedDatabase(ConnectionDB dbContext)
+        private static void SeedDatabase(ConnectionDB dbContext)
         {
             if (!dbContext.Campaign.Any())
             {

@@ -5,12 +5,10 @@ namespace Solidariza.Services
 {
     public class ValidateOrganizationService
     {
-        private readonly ConnectionDB _dbContext;
         private readonly HttpClient _httpClient;
 
-        public ValidateOrganizationService(ConnectionDB dbContext) 
+        public ValidateOrganizationService() 
         {
-            _dbContext = dbContext;
             _httpClient = new HttpClient();
         }
 

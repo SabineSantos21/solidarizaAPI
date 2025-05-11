@@ -31,7 +31,7 @@ namespace Solidariza.Tests
             _controller = new OrganizationInfoController(_dbContext);
         }
 
-        private void SeedDatabase(ConnectionDB dbContext)
+        private static void SeedDatabase(ConnectionDB dbContext)
         {
             dbContext.Organization_Info.Add(new OrganizationInfo
             {

@@ -32,7 +32,7 @@ namespace Solidariza.Tests
             _controller = new UserController(_dbContext);
         }
 
-        private void SeedDatabase(ConnectionDB dbContext)
+        private static void SeedDatabase(ConnectionDB dbContext)
         {
             dbContext.User.Add(new User { UserId = 1, Name = "Test User" });
             dbContext.SaveChanges();

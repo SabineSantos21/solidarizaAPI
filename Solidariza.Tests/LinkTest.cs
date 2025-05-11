@@ -32,7 +32,7 @@ namespace Solidariza.Tests
             _controller = new LinkController(_dbContext);
         }
 
-        private void SeedDatabase(ConnectionDB dbContext)
+        private static void SeedDatabase(ConnectionDB dbContext)
         {
             dbContext.Link.Add(new Link
             {
