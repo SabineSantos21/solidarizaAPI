@@ -127,7 +127,7 @@ namespace Solidariza.Controllers
                     return NotFound();
                 }
 
-                ValidateOrganizationService validateOrganizationService = new ValidateOrganizationService(_dbContext);
+                ValidateOrganizationService validateOrganizationService = new ValidateOrganizationService();
                 ConsultCNPJResponse organizationValid = await validateOrganizationService.ConsultCNPJ(cnpj);
 
                 OrganizationInfo organizationInfo = existingOrganizationInfo;

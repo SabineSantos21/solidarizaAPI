@@ -64,7 +64,7 @@ namespace Solidariza.Controllers
 
                 if (user.Type == UserType.Organization)
                 {
-                    ValidateOrganizationService validateOrganizationService = new ValidateOrganizationService(_dbContext);
+                    ValidateOrganizationService validateOrganizationService = new ValidateOrganizationService();
                     ConsultCNPJResponse organizationValid = await validateOrganizationService.ConsultCNPJ(user.DocumentNumber);
 
                     NewOrganizationInfoCNPJValid newOrganizationInfo = new NewOrganizationInfoCNPJValid()
