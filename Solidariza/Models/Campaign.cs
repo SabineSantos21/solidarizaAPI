@@ -9,7 +9,7 @@ namespace Solidariza.Models
 
         public int UserId { get; set; }
 
-        public required virtual User User { get; set; }
+        public virtual User? User { get; set; }
 
         public CampaignType Type { get; set; }
 

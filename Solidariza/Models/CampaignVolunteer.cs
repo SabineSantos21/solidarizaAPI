@@ -8,11 +8,11 @@ namespace Solidariza.Models
 
         public int CampaignId { get; set; }
 
-        public required virtual Campaign Campaign { get; set; }
+        public virtual Campaign? Campaign { get; set; }
 
         public int UserId { get; set; }
 
-        public required virtual User User { get; set; }
+        public virtual User? User { get; set; }
 
         public CampaignVolunteerStatus IsApproved { get; set; }
     }

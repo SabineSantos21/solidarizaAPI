@@ -14,7 +14,7 @@ namespace Solidariza.Models
 
         public int ProfileId { get; set; }
 
-        public required virtual Profile Profile { get; set; }
+        public virtual Profile? Profile { get; set; }
     }
 
     public class NewLink
