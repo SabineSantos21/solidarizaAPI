@@ -100,7 +100,7 @@ jobs:
         run: |
           user=$(echo "$PUBLISH_PROFILE" | grep -oP '(?<=userName=")[^"]+')
           pass=$(echo "$PUBLISH_PROFILE" | grep -oP '(?<=userPWD=")[^"]+')
-          curl -i -u "$user:$pass" -X DELETE "https://$SITE_NAME.scm.azurewebsites.net/api/vfs/site/wwwroot/"
+          curl -i -u "$user:$pass" -X DELETE "https://solidarizaapi-cnbqcwduhta9bdbm.centralus-01.azurewebsites.net/api/vfs/site/wwwroot/"
 
       - name: Deploy para Azure Web App
         uses: azure/webapps-deploy@v3
