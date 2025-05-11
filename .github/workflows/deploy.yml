@@ -66,19 +66,19 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Clean build outputs
-        run: dotnet clean --runtime win-x86
+        run: dotnet clean --runtime win-x64
 
       - name: Restore dependências
-        run: dotnet restore --runtime win-x86
+        run: dotnet restore --runtime win-x64
 
-      - name: Build (win-x86)
-        run: dotnet build ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x86 --no-restore
+      - name: Build (win-x64)
+        run: dotnet build ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --no-restore
 
       - name: Testes
-        run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x86 --no-build --verbosity normal
+        run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --no-build --verbosity normal
 
-      - name: Publish (self-contained para Windows 32 bits)
-        run: dotnet publish ./Solidariza/Solidariza.csproj --runtime win-x86 --self-contained true --configuration Release --output ./publish
+      - name: Publish (self-contained para Windows 64 bits)
+        run: dotnet publish ./Solidariza/Solidariza.csproj --runtime win-x64 --self-contained true --configuration Release --output ./publish
 
       - name: Verifique se DLL base está publicada
         run: find ./publish -name 'System.Private.CoreLib.dll' || true
