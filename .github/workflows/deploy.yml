@@ -78,7 +78,7 @@ jobs:
         run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --no-build --verbosity normal
 
       - name: Publish (self-contained para Windows 64 bits)
-        run: dotnet publish ./Solidariza/Solidariza.csproj --runtime win-x64 --self-contained true --configuration Release --output ./publish
+        run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --output ./publish
 
       - name: Verifique se DLL base está publicada
         run: find ./publish -name 'System.Private.CoreLib.dll' || true
