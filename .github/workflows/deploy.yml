@@ -80,14 +80,11 @@ jobs:
       - name: Publish (self-contained para Windows 32 bits)
         run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --self-contained true --runtime win-x86 --no-build --output ./publish
 
-      - name: Verificar DLL base publicada
-        run: find ./publish -name 'System.Threading.dll' || true
+      - name: Verifique se DLL base está publicada
+        run: find ./publish -name 'System.Private.CoreLib.dll' || true
 
-      - name: Listar todas as DLLs do publish (debug)
+      - name: Listar todas as DLLs do publish
         run: find ./publish -name '*.dll'
-
-      - name: Listar arquivos publicados (debug)
-        run: ls -la ./publish
 
       - name: Deploy para Azure Web App
         uses: azure/webapps-deploy@v3
