@@ -9,16 +9,18 @@ namespace Solidariza.Common
         private const int KeySize = 32;  // 256 bits
         private const int Iterations = 100000;
 
-        public string HashPassword(string password)
+        public static string HashPassword(string password)
         {
+            // Gera um salt aleatório
+            var salt = new byte[SaltSize];
             using (var rng = RandomNumberGenerator.Create())
             {
-                // Gera um salt aleatório
-                var salt = new byte[SaltSize];
                 rng.GetBytes(salt);
+            }
 
-                // Gera o hash usando PBKDF2
-                var key = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256);
+            // Gera o hash usando PBKDF2
+            using (var key = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256))
+            {
                 var hash = key.GetBytes(KeySize);
 
                 // Junta salt + hash para armazenar
@@ -30,8 +32,9 @@ namespace Solidariza.Common
                 return Convert.ToBase64String(hashBytes);
             }
         }
+        }
 
-        public bool VerifyPassword(string password, string hashedPassword)
+        public static bool VerifyPassword(string password, string hashedPassword)
         {
             var hashBytes = Convert.FromBase64String(hashedPassword);
 

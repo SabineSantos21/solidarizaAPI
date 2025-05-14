@@ -90,7 +90,7 @@ namespace Solidariza.Controllers
 
                 if (existingCampaignVolunteer.Count > 0)
                 {
-                    var campaignVolunteerCreated = existingCampaignVolunteer.First();
+                    var campaignVolunteerCreated = existingCampaignVolunteer?.First();
                     return Ok(campaignVolunteerCreated);
                 }
 
