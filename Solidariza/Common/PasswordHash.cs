@@ -32,7 +32,7 @@ namespace Solidariza.Common
                 return Convert.ToBase64String(hashBytes);
             }
         }
-        }
+        
 
         public static bool VerifyPassword(string password, string hashedPassword)
         {
