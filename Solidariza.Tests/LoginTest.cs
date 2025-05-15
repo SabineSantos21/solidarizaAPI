@@ -5,6 +5,8 @@ using Solidariza.Controllers;
 using Solidariza.Models;
 using Solidariza.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Solidariza.Common;
 
 namespace Solidariza.Tests
 {
@@ -13,8 +15,9 @@ namespace Solidariza.Tests
         private readonly LoginController _controller;
         private readonly Mock<LoginService> _mockLoginService;
         private readonly ConnectionDB _dbContext;
+        private readonly IOptions<JwtSettings> _jwtSecret;
 
-        public LoginControllerTests()
+        public LoginControllerTests(IOptions<JwtSettings> jwtOptions)
         {
             var options = new DbContextOptionsBuilder<ConnectionDB>()
                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
@@ -25,10 +28,12 @@ namespace Solidariza.Tests
             _dbContext.Database.EnsureDeleted();
             _dbContext.Database.EnsureCreated();
 
+            _jwtSecret = jwtOptions;
+
             SeedDatabase(_dbContext);
 
             _mockLoginService = new Mock<LoginService>(_dbContext);
-            _controller = new LoginController(_dbContext);
+            _controller = new LoginController(_dbContext, _jwtSecret);
         }
 
         private static void SeedDatabase(ConnectionDB dbContext)
