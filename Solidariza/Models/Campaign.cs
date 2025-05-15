@@ -33,11 +33,11 @@ namespace Solidariza.Models
 
     public class NewCampaign
     {
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
 
         public string? Title { get; set; }
 
-        public int Type { get; set; }
+        public int? Type { get; set; }
 
         public string? Description { get; set; }
 
@@ -45,7 +45,7 @@ namespace Solidariza.Models
 
         public string? EndDate { get; set; }
 
-        public int Status { get; set; }
+        public int? Status { get; set; }
 
         public string? Address { get; set; }
 
@@ -57,11 +57,11 @@ namespace Solidariza.Models
     
     public class UpdateCampaign
     {
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
 
         public string? Title { get; set; }
 
-        public int Type { get; set; }
+        public int? Type { get; set; }
 
         public string? Description { get; set; }
 
@@ -69,7 +69,7 @@ namespace Solidariza.Models
 
         public DateTime? EndDate { get; set; }
 
-        public int Status { get; set; }
+        public int? Status { get; set; }
 
         public string? Address { get; set; }
 

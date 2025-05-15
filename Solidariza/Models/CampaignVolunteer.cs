@@ -19,14 +19,14 @@ namespace Solidariza.Models
 
     public class NewCampaignVolunteer
     {
-        public int CampaignId { get; set; }
+        public int? CampaignId { get; set; }
 
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
     }
     
     public class UpdateCampaignVolunteer
     {
-        public int IsApproved { get; set; }
+        public int? IsApproved { get; set; }
 
     }
 }

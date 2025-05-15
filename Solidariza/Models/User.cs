@@ -33,7 +33,7 @@ namespace Solidariza.Models
     {
         public string? Name { get; set; }
 
-        public int Type { get; set; }
+        public int? Type { get; set; }
 
         public int? DocumentType { get; set; }
 
@@ -52,11 +52,11 @@ namespace Solidariza.Models
 
     public class UserResponse
     {
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
 
         public string? Name { get; set; }
 
-        public UserType Type { get; set; }
+        public UserType? Type { get; set; }
 
         public DocumentType? DocumentType { get; set; }
 
@@ -66,6 +66,6 @@ namespace Solidariza.Models
 
         public string? Phone { get; set; }
 
-        public bool IsActive { get; set; } = true;
+        public bool? IsActive { get; set; } = true;
     }
 }

@@ -19,10 +19,10 @@ namespace Solidariza.Models
 
     public class NewLink
     {
-        public LinkType Type { get; set; }
+        public LinkType? Type { get; set; }
 
         public string? Url { get; set; }
 
-        public int ProfileId { get; set; }
+        public int? ProfileId { get; set; }
     }
 }

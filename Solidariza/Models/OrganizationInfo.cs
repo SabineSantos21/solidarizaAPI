@@ -36,9 +36,9 @@ namespace Solidariza.Models
     
     public class NewOrganizationInfo
     {
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
 
-        public int PixType { get; set; }
+        public int? PixType { get; set; }
 
         public string? PixKey { get; set; }
 
@@ -55,16 +55,16 @@ namespace Solidariza.Models
 
     public class NewOrganizationInfoCNPJValid 
     {
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
 
-        public bool IsOrganizationApproved { get; set; }
+        public bool? IsOrganizationApproved { get; set; }
 
         public string? DisapprovalReason { get; set; }
     }
 
     public class UpdateOrganizationInfo
     {
-        public int PixType { get; set; }
+        public int? PixType { get; set; }
 
         public string? PixKey { get; set; }
 
