@@ -25,15 +25,13 @@ namespace Solidariza.Controllers
 
             LoginService loginService = new LoginService(_dbContext);
 
-            PasswordHash passwordHash = new PasswordHash();
-
             if (string.IsNullOrEmpty(login.Password))
             {
                 return BadRequest("A senha é obrigatória.");
             }
 
-            var hashPassword = passwordHash.HashPassword(login.Password);
-            var verifyPassword = passwordHash.VerifyPassword(login.Password, hashPassword);
+            var hashPassword = PasswordHash.HashPassword(login.Password);
+            var verifyPassword = PasswordHash.VerifyPassword(login.Password, hashPassword);
             
             if (verifyPassword == false) return BadRequest();
 

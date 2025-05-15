@@ -56,8 +56,7 @@ namespace Solidariza.Controllers
                     return BadRequest("A senha é obrigatória.");
                 }
 
-                PasswordHash passwordHash = new PasswordHash();
-                newUser.Password = passwordHash.HashPassword(newUser.Password);
+                newUser.Password = PasswordHash.HashPassword(newUser.Password);
 
                 User user = await usuarioService.CreateUser(newUser);
 
