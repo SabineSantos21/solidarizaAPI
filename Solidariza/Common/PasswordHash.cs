@@ -7,7 +7,7 @@ namespace Solidariza.Common
     {
         private const int SaltSize = 32; // Tamanho do salt em bytes
         private const int KeySize = 32; // Tamanho da chave/hash em bytes
-        private const int Iterations = 10000; // Número de iterações para o PBKDF2
+        private const int Iterations = 100000; // Número de iterações para o PBKDF2
 
         public static string HashPassword(string password)
         {
