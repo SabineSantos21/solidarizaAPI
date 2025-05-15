@@ -3,6 +3,7 @@ using Solidariza.Services;
 using Microsoft.AspNetCore.Mvc;
 using Solidariza.Models;
 using Solidariza.Common;
+using Microsoft.Extensions.Options;
 
 namespace Solidariza.Controllers
 {
@@ -11,10 +12,12 @@ namespace Solidariza.Controllers
     public class LoginController : ControllerBase
     {
         private readonly ConnectionDB _dbContext;
+        private readonly IOptions<JwtSettings> _jwtSecret;
 
-        public LoginController(ConnectionDB dbContext)
+        public LoginController(ConnectionDB dbContext, IOptions<JwtSettings> jwtOptions)
         {
             _dbContext = dbContext;
+            _jwtSecret = jwtOptions;
         }
 
         [HttpPost]
@@ -23,7 +26,7 @@ namespace Solidariza.Controllers
         public IActionResult Login(Login login)
         {
 
-            LoginService loginService = new LoginService(_dbContext);
+            LoginService loginService = new LoginService(_dbContext,_jwtSecret);
 
             if (string.IsNullOrEmpty(login.Password))
             {

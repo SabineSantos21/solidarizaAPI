@@ -3,21 +3,25 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.Extensions.Options;
+using Solidariza.Common;
 
 namespace Solidariza.Services
 {
     public class LoginService
     {
         private readonly ConnectionDB _dbContext;
+        private readonly string _jwtSecret;
 
-        public LoginService(ConnectionDB dbContext) 
+        public LoginService(ConnectionDB dbContext, IOptions<JwtSettings> jwtOptions) 
         {
             _dbContext = dbContext;
+            _jwtSecret = jwtOptions.Value.SecretKey;
         }
 
         public string GerarTokenJWT(string email)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("hrjendj372849fnwyd7349299kjdu8nbcoabe99"));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]

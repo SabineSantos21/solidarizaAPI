@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Solidariza.Common;
 using System.Text;
 
 namespace Solidariza
@@ -76,6 +77,8 @@ namespace Solidariza
                 .AllowAnyOrigin()
                 .AllowAnyMethod()
                 .AllowAnyHeader()));
+
+            services.Configure<JwtSettings>(Configuration.GetSection("JwtSettings"));
 
             services.AddHttpClient("http-client");
         }
