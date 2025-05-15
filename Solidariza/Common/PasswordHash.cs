@@ -1,8 +1,8 @@
-﻿using System.Security.Cryptography;
+﻿using System;
+using System.Security.Cryptography;
 
 namespace Solidariza.Common
 {
-
     public static class PasswordHash
     {
         private const int SaltSize = 32; // Tamanho do salt em bytes
@@ -12,11 +12,7 @@ namespace Solidariza.Common
         public static string HashPassword(string password)
         {
             // Gera um salt aleatório
-            var salt = new byte[SaltSize];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(salt);
-            }
+            var salt = GenerateSalt();
 
             // Gera o hash usando PBKDF2
             using (var key = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256))
@@ -52,6 +48,16 @@ namespace Solidariza.Common
                 // Compara byte a byte
                 return hash.SequenceEqual(hashToCompare);
             }
+        }
+
+        private static byte[] GenerateSalt()
+        {
+            var salt = new byte[SaltSize];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(salt); // Gera um salt aleatório
+            }
+            return salt;
         }
     }
 }
