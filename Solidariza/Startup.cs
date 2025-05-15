@@ -38,8 +38,11 @@ namespace Solidariza
 
             // Pega chave JWT do ambiente/configuração (NUNCA HARD CODE!)
             string? jwtKey = Configuration["JwtKey"];
+
             if (string.IsNullOrEmpty(jwtKey))
-                throw new Exception("JwtKey não encontrada nas configurações do ambiente!");
+            {
+                throw new InvalidOperationException("JwtKey não encontrada nas configurações do ambiente!");
+            }
 
             services.AddAuthentication(options =>
             {

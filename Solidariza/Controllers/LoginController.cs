@@ -33,7 +33,7 @@ namespace Solidariza.Controllers
             var hashPassword = PasswordHash.HashPassword(login.Password);
             var verifyPassword = PasswordHash.VerifyPassword(login.Password, hashPassword);
             
-            if (verifyPassword == false) return BadRequest();
+            if (!verifyPassword) return BadRequest();
 
             if (string.IsNullOrEmpty(login.Email))
             {
