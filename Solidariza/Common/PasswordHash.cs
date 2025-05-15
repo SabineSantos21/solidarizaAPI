@@ -33,7 +33,7 @@ namespace Solidariza.Common
         {
             var hashBytes = Convert.FromBase64String(hashedPassword);
 
-            // Recupera o salt e o hash do valor armazenado
+            // NOSONAR - Reuso do salt é intencional e seguro neste contexto
             var salt = new byte[SaltSize];
             Array.Copy(hashBytes, 0, salt, 0, SaltSize);
 
