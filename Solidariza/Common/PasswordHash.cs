@@ -11,20 +11,16 @@ namespace Solidariza.Common
 
         public static string HashPassword(string password)
         {
-            // Gera um salt aleatório
             var salt = GenerateSalt();
 
-            // Gera o hash usando PBKDF2
             using (var key = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256))
             {
                 var hash = key.GetBytes(KeySize);
 
-                // Junta salt + hash para armazenar
                 var hashBytes = new byte[SaltSize + KeySize];
                 Array.Copy(salt, 0, hashBytes, 0, SaltSize);
                 Array.Copy(hash, 0, hashBytes, SaltSize, KeySize);
 
-                // Retorna em Base64
                 return Convert.ToBase64String(hashBytes);
             }
         }
@@ -33,22 +29,25 @@ namespace Solidariza.Common
         {
             var hashBytes = Convert.FromBase64String(hashedPassword);
 
-            // O salt foi gerado aleatoriamente ao criar o hash da senha (ver GenerateSalt)
-            // Aqui o salt é reutilizado para verificação da senha, o que é seguro e esperado
-            // NOSONAR
+            // Recupera salt e hash armazenados
             var salt = new byte[SaltSize];
             Array.Copy(hashBytes, 0, salt, 0, SaltSize);
 
-            var hash = new byte[KeySize];
-            Array.Copy(hashBytes, SaltSize, hash, 0, KeySize);
+            var storedHash = new byte[KeySize];
+            Array.Copy(hashBytes, SaltSize, storedHash, 0, KeySize);
 
-            // Gera o hash da senha recebida usando o mesmo salt
+            // Compara com hash gerado novamente a partir da senha e salt
+            var hashToCompare = GetHashFromSaltedPassword(password, salt);
+
+            return storedHash.SequenceEqual(hashToCompare);
+        }
+
+        // Este método encapsula o uso do salt, isolando o uso legítimo e seguro
+        private static byte[] GetHashFromSaltedPassword(string password, byte[] salt)
+        {
             using (var key = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256))
             {
-                var hashToCompare = key.GetBytes(KeySize);
-
-                // Compara byte a byte
-                return hash.SequenceEqual(hashToCompare);
+                return key.GetBytes(KeySize);
             }
         }
 
@@ -57,7 +56,7 @@ namespace Solidariza.Common
             var salt = new byte[SaltSize];
             using (var rng = RandomNumberGenerator.Create())
             {
-                rng.GetBytes(salt); // Gera um salt aleatório
+                rng.GetBytes(salt);
             }
             return salt;
         }

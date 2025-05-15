@@ -67,7 +67,7 @@ namespace Solidariza.Controllers
                 };
 
                 ProfileService profileService = new ProfileService(_dbContext);
-                Profile profile = await profileService.CreateProfile(newProfile);
+                await profileService.CreateProfile(newProfile);
 
                 if (user.Type == UserType.Organization)
                 {
@@ -84,7 +84,7 @@ namespace Solidariza.Controllers
                     };
 
                     OrganizationInfoService organizationInfoService = new OrganizationInfoService(_dbContext); 
-                    OrganizationInfo organizationInfo = await organizationInfoService.CreateOrganizationInfoCPNJValid(newOrganizationInfo);
+                    await organizationInfoService.CreateOrganizationInfoCPNJValid(newOrganizationInfo);
                 }
 
                 return Ok(user);
