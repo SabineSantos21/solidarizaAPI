@@ -33,7 +33,9 @@ namespace Solidariza.Common
         {
             var hashBytes = Convert.FromBase64String(hashedPassword);
 
-            // NOSONAR - Reuso do salt é intencional e seguro neste contexto
+            // O salt foi gerado aleatoriamente ao criar o hash da senha (ver GenerateSalt)
+            // Aqui o salt é reutilizado para verificação da senha, o que é seguro e esperado
+            // NOSONAR
             var salt = new byte[SaltSize];
             Array.Copy(hashBytes, 0, salt, 0, SaltSize);
 
