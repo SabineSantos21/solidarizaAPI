@@ -43,6 +43,9 @@ jobs:
           New-Item -Path .\.sonar\scanner -ItemType Directory -Force
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
 
+      - name: Install dotnet-coverage
+        run: dotnet tool install --global dotnet-coverage
+
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -52,25 +55,20 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.cobertura.reportsPaths="Solidariza.Tests/TestResults/**/coverage.cobertura.xml"
+            /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml"
 
       - name: Restore dependencies
         run: dotnet restore
 
       - name: Build solution
-        run: dotnet build --no-restore
+        run: dotnet build --no-restore --no-incremental
 
       - name: Run tests with coverage
         run: |
-          dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
-            --collect:"XPlat Code Coverage" `
-            --results-directory Solidariza.Tests/TestResults `
-            --logger "trx;LogFileName=TestResults.trx" `
-            --no-build
+          dotnet-coverage collect "dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity normal" -f xml -o "coverage.xml"
 
-      - name: Mostrar arquivos de cobertura encontrados
-        run: |
-          Get-ChildItem -Recurse Solidariza.Tests/TestResults | Where-Object { $_.Name -like "*.cobertura.xml" }
+      - name: Mostrar arquivo de cobertura gerado
+        run: Get-ChildItem -Path . -Filter "coverage.xml"
 
       - name: End SonarCloud analysis
         env:
