@@ -74,7 +74,7 @@ namespace Solidariza.Controllers
                     if (user.DocumentNumber == null) return BadRequest("Número do documento é obrigatório");
 
                     ValidateOrganizationService validateOrganizationService = new ValidateOrganizationService();
-                    ConsultCNPJResponse organizationValid = await validateOrganizationService.ConsultCNPJ(user.DocumentNumber);
+                    ConsultCnpjResponse organizationValid = await validateOrganizationService.ConsultCNPJ(user.DocumentNumber);
 
                     NewOrganizationInfoCNPJValid newOrganizationInfo = new NewOrganizationInfoCNPJValid()
                     {

@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace Solidariza.Models
 {
 
-    public class APICNPJConsultResponse
+    public class ApicnpjConsultResponse
     {
         [JsonPropertyName("cnpj_raiz")]
         public string? CnpjRaiz { get; set; }
@@ -313,7 +313,7 @@ namespace Solidariza.Models
         public string? SiafiId { get; set; }
     }
 
-    public class ConsultCNPJResponse
+    public class ConsultCnpjResponse
     {
         public bool IsValid { get; set; }
 

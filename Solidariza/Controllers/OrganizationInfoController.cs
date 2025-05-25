@@ -86,7 +86,7 @@ namespace Solidariza.Controllers
 
             OrganizationInfo organizationInfo = existingOrganizationInfo;
             organizationInfo.PixKey = atualizarOrganizationInfo.PixKey;
-            organizationInfo.PixType = (PixType) atualizarOrganizationInfo.PixType;
+            organizationInfo.PixType = (PixType) Convert.ToInt32(atualizarOrganizationInfo.PixType);
             organizationInfo.BeneficiaryCity = atualizarOrganizationInfo.BeneficiaryCity;
             organizationInfo.BeneficiaryName = atualizarOrganizationInfo.BeneficiaryName;
             organizationInfo.ContactPhone = atualizarOrganizationInfo.ContactPhone;
@@ -127,7 +127,7 @@ namespace Solidariza.Controllers
                 }
 
                 ValidateOrganizationService validateOrganizationService = new ValidateOrganizationService();
-                ConsultCNPJResponse organizationValid = await validateOrganizationService.ConsultCNPJ(cnpj);
+                ConsultCnpjResponse organizationValid = await validateOrganizationService.ConsultCNPJ(cnpj);
 
                 OrganizationInfo organizationInfo = existingOrganizationInfo;
                 organizationInfo.DisapprovalReason = organizationValid.DisapprovalReason;

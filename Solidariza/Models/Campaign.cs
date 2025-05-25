@@ -33,6 +33,7 @@ namespace Solidariza.Models
 
     public class NewCampaign
     {
+        [Required]
         public int UserId { get; set; }
 
         public string? Title { get; set; }

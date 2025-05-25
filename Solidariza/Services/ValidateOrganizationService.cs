@@ -12,15 +12,15 @@ namespace Solidariza.Services
             _httpClient = new HttpClient();
         }
 
-        public async Task<ConsultCNPJResponse> ConsultCNPJ(string cnpj)
+        public async Task<ConsultCnpjResponse> ConsultCNPJ(string cnpj)
         {
 
             var organizationJson = GetOrganizationByAPI(cnpj);
-            var organization = JsonSerializer.Deserialize<APICNPJConsultResponse>(await organizationJson);
+            var organization = JsonSerializer.Deserialize<ApicnpjConsultResponse>(await organizationJson);
 
             if (organization == null)
             {
-                return new ConsultCNPJResponse()
+                return new ConsultCnpjResponse()
                 {
                     DisapprovalReason = "Não encontramos essa empresa. Verifique se o CNPJ está correto e tente novamente",
                     IsValid = false
@@ -31,7 +31,7 @@ namespace Solidariza.Services
 
             if (isAtiva == false) {
                     
-                return new ConsultCNPJResponse()
+                return new ConsultCnpjResponse()
                 {
                     DisapprovalReason = "Este CNPJ está inativo no momento. Confira a situação cadastral antes de prosseguir.",
                     IsValid = false
@@ -42,7 +42,7 @@ namespace Solidariza.Services
 
             if (organization.NaturezaJuridica == null || organization.NaturezaJuridica.Id == null)
             {
-                return new ConsultCNPJResponse()
+                return new ConsultCnpjResponse()
                 {
                     DisapprovalReason = "Empresa não possui Natureza Jurídica",
                     IsValid = false
@@ -53,14 +53,14 @@ namespace Solidariza.Services
                                         NaturezasPermitidas.Contains(int.Parse(organization.NaturezaJuridica.Id));
 
             if (isSemFinsLucrativos == false) {
-                return new ConsultCNPJResponse()
+                return new ConsultCnpjResponse()
                 {
                     DisapprovalReason = "Esta organização não é registrada como sem fins lucrativos. Confira as informações e tente novamente.",
                     IsValid = false
                 };
             }
 
-            return new ConsultCNPJResponse()
+            return new ConsultCnpjResponse()
             {
                 DisapprovalReason = "",
                 IsValid = true

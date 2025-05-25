@@ -119,7 +119,7 @@ namespace Solidariza.Controllers
 
             CampaignVolunteer campaign = new CampaignVolunteer()
             {
-                IsApproved = (CampaignVolunteerStatus) atualizarCampaignVolunteer.IsApproved
+                IsApproved = (CampaignVolunteerStatus) Convert.ToInt32(atualizarCampaignVolunteer.IsApproved)
             };
 
             await campaignVolunteerService.AtualizarCampaignVolunteer(existingCampaignVolunteer, campaign);

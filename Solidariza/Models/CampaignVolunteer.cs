@@ -1,4 +1,5 @@
 ﻿using Solidariza.Models.Enum;
+using System.ComponentModel.DataAnnotations;
 
 namespace Solidariza.Models
 {
@@ -19,8 +20,10 @@ namespace Solidariza.Models
 
     public class NewCampaignVolunteer
     {
+        [Required]
         public int CampaignId { get; set; }
 
+        [Required]
         public int UserId { get; set; }
     }
     
