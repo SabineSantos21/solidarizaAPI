@@ -62,15 +62,15 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          mkdir coverage
+          mkdir -p Solidariza.Tests/TestResults
           dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
             /p:CollectCoverage=true `
             /p:CoverletOutputFormat=opencover `
-            /p:CoverletOutput=../coverage/coverage.opencover.xml `
+            /p:CoverletOutput=Solidariza.Tests/TestResults/coverage.opencover.xml `
             --no-build
 
       - name: Verificar relatório de cobertura gerado
-        run: type coverage/coverage.opencover.xml
+        run: type Solidariza.Tests\TestResults\coverage.opencover.xml
 
       - name: End SonarCloud analysis
         env:
