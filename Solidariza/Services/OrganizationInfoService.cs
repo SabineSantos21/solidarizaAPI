@@ -81,7 +81,7 @@ namespace Solidariza.Services
         {
 
             existingOrganizationInfo.DisapprovalReason = OrganizationInfo.DisapprovalReason;
-            existingOrganizationInfo.IsOrganizationApproved = existingOrganizationInfo.IsOrganizationApproved;
+            existingOrganizationInfo.IsOrganizationApproved = OrganizationInfo.IsOrganizationApproved;
 
             _dbContext.Organization_Info.Update(existingOrganizationInfo);
             await _dbContext.SaveChangesAsync();

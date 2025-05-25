@@ -62,11 +62,13 @@ jobs:
 
       - name: Run tests with coverage
         run: |
+          mkdir coverage
           dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
             /p:CollectCoverage=true `
             /p:CoverletOutputFormat=opencover `
-            /p:CoverletOutput=TestResults/coverage.opencover.xml `
+            /p:CoverletOutput=../coverage/coverage.opencover.xml `
             --no-build
+
 
       - name: Verificar relatório de cobertura gerado
         run: type Solidariza.Tests\TestResults\coverage.opencover.xml
