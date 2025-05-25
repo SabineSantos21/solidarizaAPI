@@ -1,5 +1,6 @@
 ﻿using Solidariza.Models.Enum;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Solidariza.Models
 {
@@ -33,6 +34,7 @@ namespace Solidariza.Models
 
     public class NewCampaign
     {
+        [JsonRequired]
         [Required]
         public int UserId { get; set; }
 

@@ -39,7 +39,7 @@ namespace Solidariza.Services
             User user = new User()
             {
                 Name = newUser.Name,
-                Type = (UserType)newUser.Type,
+                Type = (UserType)Convert.ToInt32(newUser.Type),
                 DocumentNumber = newUser.DocumentNumber,
                 DocumentType = newUser.DocumentType != null ? (DocumentType)newUser.DocumentType : null,
                 Phone = newUser.Phone,

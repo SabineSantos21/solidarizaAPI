@@ -1,5 +1,6 @@
 ﻿using Solidariza.Models.Enum;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Solidariza.Models
 {
@@ -20,9 +21,11 @@ namespace Solidariza.Models
 
     public class NewCampaignVolunteer
     {
+        [JsonRequired]
         [Required]
         public int CampaignId { get; set; }
 
+        [JsonRequired]
         [Required]
         public int UserId { get; set; }
     }

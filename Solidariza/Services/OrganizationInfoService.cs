@@ -66,11 +66,11 @@ namespace Solidariza.Services
         {
 
             existingOrganizationInfo.PixKey = OrganizationInfo.PixKey;
-            existingOrganizationInfo.ContactPhone = existingOrganizationInfo.ContactPhone;
-            existingOrganizationInfo.ContactName = existingOrganizationInfo.ContactName;
-            existingOrganizationInfo.PixType = existingOrganizationInfo.PixType;
-            existingOrganizationInfo.BeneficiaryName = existingOrganizationInfo.BeneficiaryName;
-            existingOrganizationInfo.BeneficiaryCity = existingOrganizationInfo.BeneficiaryCity;
+            existingOrganizationInfo.ContactPhone = OrganizationInfo.ContactPhone;
+            existingOrganizationInfo.ContactName = OrganizationInfo.ContactName;
+            existingOrganizationInfo.PixType = OrganizationInfo.PixType;
+            existingOrganizationInfo.BeneficiaryName = OrganizationInfo.BeneficiaryName;
+            existingOrganizationInfo.BeneficiaryCity = OrganizationInfo.BeneficiaryCity;
 
             _dbContext.Organization_Info.Update(existingOrganizationInfo);
             await _dbContext.SaveChangesAsync();

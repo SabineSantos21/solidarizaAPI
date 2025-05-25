@@ -33,7 +33,7 @@ namespace Solidariza.Controllers
         }
 
         [HttpPost("")]
-        public async Task<ActionResult> CreateUser(NewUser newUser)
+        public async Task<ActionResult> PostUser(NewUser newUser)
         {
             try
             {

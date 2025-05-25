@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Solidariza.Models
 {
@@ -29,7 +30,8 @@ namespace Solidariza.Models
     
     public class NewProfile
     {
-
+        [JsonRequired]
+        [Required]
         public int UserId { get; set; }
 
         public string? Name { get; set; }

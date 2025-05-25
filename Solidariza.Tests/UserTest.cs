@@ -51,7 +51,7 @@ namespace Solidariza.Tests
             };
 
             // Act
-            var result = await _controller.CreateUser(newUser);
+            var result = await _controller.PostUser(newUser);
 
             // Assert
             var actionResult = Assert.IsType<OkObjectResult>(result);

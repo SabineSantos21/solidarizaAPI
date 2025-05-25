@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Solidariza.Models.Enum;
+using System.Text.Json.Serialization;
 
 namespace Solidariza.Models
 {
@@ -36,8 +37,12 @@ namespace Solidariza.Models
     
     public class NewOrganizationInfo
     {
+        [JsonRequired]
+        [Required]
         public int UserId { get; set; }
 
+        [JsonRequired]
+        [Required]
         public int PixType { get; set; }
 
         public string? PixKey { get; set; }
@@ -55,8 +60,12 @@ namespace Solidariza.Models
 
     public class NewOrganizationInfoCNPJValid 
     {
+        [JsonRequired]
+        [Required]
         public int UserId { get; set; }
 
+        [JsonRequired]
+        [Required]
         public bool IsOrganizationApproved { get; set; }
 
         public string? DisapprovalReason { get; set; }
