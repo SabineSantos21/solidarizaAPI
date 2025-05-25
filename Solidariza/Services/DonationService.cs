@@ -1,10 +1,11 @@
 ﻿using Solidariza.Models;
 using System.Text.Json;
 using System.Text;
+using Solidariza.Interfaces.Services;
 
 namespace Solidariza.Services
 {
-    public class DonationService
+    public class DonationService: IDonationService
     {
         private readonly ConnectionDB _dbContext;
         private readonly HttpClient _httpClient;

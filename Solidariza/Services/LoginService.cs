@@ -5,10 +5,11 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Solidariza.Common;
+using Solidariza.Interfaces.Services;
 
 namespace Solidariza.Services
 {
-    public class LoginService
+    public class LoginService: ILoginService
     {
         private readonly ConnectionDB _dbContext;
         private readonly string _jwtSecret;

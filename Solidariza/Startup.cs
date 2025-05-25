@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Solidariza.Common;
+using Solidariza.Interfaces.Services;
+using Solidariza.Services;
 using System.Text;
 
 namespace Solidariza
@@ -63,6 +65,16 @@ namespace Solidariza
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
                 };
             });
+
+            services.AddScoped<ICampaignService, CampaignService>();
+            services.AddScoped<ICampaignVolunteerService, CampaignVolunteerService>();
+            services.AddScoped<IDonationService, DonationService>();
+            services.AddScoped<ILinkService, LinkService>();
+            services.AddScoped<ILoginService, LoginService>();
+            services.AddScoped<IOrganizationInfoService, OrganizationInfoService>();
+            services.AddScoped<IProfileService, ProfileService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IValidateOrganizationService, ValidateOrganizationService>();
 
             // Pega string de conexão por configuração/variável de ambiente
             var connectiondb = Configuration.GetConnectionString("DefaultConnection");

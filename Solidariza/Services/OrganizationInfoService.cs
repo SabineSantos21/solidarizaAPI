@@ -1,10 +1,11 @@
 ﻿using Solidariza.Models;
 using Microsoft.EntityFrameworkCore;
 using Solidariza.Models.Enum;
+using Solidariza.Interfaces.Services;
 
 namespace Solidariza.Services
 {
-    public class OrganizationInfoService
+    public class OrganizationInfoService: IOrganizationInfoService
     {
         private readonly ConnectionDB _dbContext;
 

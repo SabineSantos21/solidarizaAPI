@@ -1,10 +1,11 @@
 ﻿using Solidariza.Models;
 using Microsoft.EntityFrameworkCore;
 using Solidariza.Models.Enum;
+using Solidariza.Interfaces.Services;
 
 namespace Solidariza.Services
 {
-    public class LinkService
+    public class LinkService: ILinkService
     {
         private readonly ConnectionDB _dbContext;
 

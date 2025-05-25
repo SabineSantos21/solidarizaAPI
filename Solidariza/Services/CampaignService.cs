@@ -1,10 +1,11 @@
 ﻿using Solidariza.Models;
 using Microsoft.EntityFrameworkCore;
 using Solidariza.Models.Enum;
+using Solidariza.Interfaces.Services;
 
 namespace Solidariza.Services
 {
-    public class CampaignService
+    public class CampaignService: ICampaignService
     {
         private readonly ConnectionDB _dbContext;
 

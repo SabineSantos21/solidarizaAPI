@@ -1,9 +1,10 @@
-﻿using Solidariza.Models;
+﻿using Solidariza.Interfaces.Services;
+using Solidariza.Models;
 using System.Text.Json;
 
 namespace Solidariza.Services
 {
-    public class ValidateOrganizationService
+    public class ValidateOrganizationService: IValidateOrganizationService
     {
         private readonly HttpClient _httpClient;
 
