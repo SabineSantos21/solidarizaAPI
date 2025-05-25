@@ -52,7 +52,7 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+            /d:sonar.cs.opencover.reportsPaths="Solidariza.Tests/TestResults/coverage.opencover.xml"
 
       - name: Restore dependencies
         run: dotnet restore
@@ -67,6 +67,9 @@ jobs:
             /p:CoverletOutputFormat=opencover `
             /p:CoverletOutput=TestResults/coverage.opencover.xml `
             --no-build
+
+      - name: Verificar relatório de cobertura gerado
+        run: type Solidariza.Tests\TestResults\coverage.opencover.xml
 
       - name: End SonarCloud analysis
         env:
