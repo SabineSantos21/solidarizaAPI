@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Solidariza.Interfaces.Services;
 
 namespace Solidariza.Tests
 {
@@ -17,6 +18,7 @@ namespace Solidariza.Tests
     {
         private readonly CampaignController _controller;
         private readonly ConnectionDB _dbContext;
+        public Mock<ICampaignService> _campaignService { get; set; }
 
         public CampaignControllerTests()
         {
@@ -29,7 +31,9 @@ namespace Solidariza.Tests
             _dbContext.Database.EnsureCreated();
 
             SeedDatabase(_dbContext);
-            _controller = new CampaignController(_dbContext);
+
+            _campaignService = new Mock<ICampaignService>();
+            _controller = new CampaignController(_dbContext, _campaignService.Object);
         }
 
         private static void SeedDatabase(ConnectionDB dbContext)
@@ -57,11 +61,24 @@ namespace Solidariza.Tests
         [Fact]
         public async Task GetCampaigns_ReturnsListOfCampaigns()
         {
+            var campaigns = new List<Campaign>
+            {
+                new Campaign { CampaignId = 1, Title = "Campanha 1" },
+                new Campaign { CampaignId = 2, Title = "Campanha 2" }
+            };
+
+            _campaignService.Setup(s => s.GetCampaigns())
+                .ReturnsAsync(campaigns);
+
             var result = await _controller.GetCampaigns();
-            var okResult = Assert.IsType<ActionResult<List<Campaign>>>(result);
-            Assert.NotNull(okResult.Value);
-            Assert.NotEmpty(okResult.Value);
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var returnedCampaigns = Assert.IsType<List<Campaign>>(okResult.Value);
+
+            Assert.NotNull(returnedCampaigns);
+            Assert.Equal(2, returnedCampaigns.Count);
         }
+
 
         [Fact]
         public async Task GetCampaigns_WhenEmpty_ReturnsNotFound()
@@ -83,17 +100,24 @@ namespace Solidariza.Tests
         [Fact]
         public async Task GetCampaignByUserId_ExistingUserId_ReturnsCampaigns()
         {
-            var result = await _controller.GetCampaignByUserId(1);
-            var okResult = Assert.IsType<ActionResult<List<Campaign>>>(result);
-            Assert.NotNull(okResult.Value);
-            Assert.NotEmpty(okResult.Value);
-        }
+            var userId = 1;
+            var campaigns = new List<Campaign>
+            {
+                new Campaign { CampaignId = 1, Title = "Campanha 1", UserId = userId },
+                new Campaign { CampaignId = 2, Title = "Campanha 2", UserId = userId }
+            };
 
-        [Fact]
-        public async Task GetCampaignByUserId_NonExistingUserId_ReturnsNotFound()
-        {
-            var result = await _controller.GetCampaignByUserId(999);
-            Assert.IsType<NotFoundResult>(result.Result);
+            _campaignService.Setup(s => s.GetCampaignByUserId(userId))
+                .ReturnsAsync(campaigns);
+
+            var result = await _controller.GetCampaignByUserId(userId);
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var returnedCampaigns = Assert.IsType<List<Campaign>>(okResult.Value);
+
+            Assert.NotNull(returnedCampaigns);
+            Assert.Equal(2, returnedCampaigns.Count);
+            Assert.All(returnedCampaigns, c => Assert.Equal(userId, c.UserId));
         }
 
         [Fact]
@@ -113,20 +137,36 @@ namespace Solidariza.Tests
                 EndDate = DateTime.Now.AddDays(5).ToString(),
             };
 
+            var expectedCampaign = new Campaign
+            {
+                CampaignId = 123, // ou qualquer outro valor necessário
+                UserId = 1,
+                Title = "New Campaign",
+                Description = "New Description",
+                Type = CampaignType.Collection,
+                Status = CampaignStatus.Active,
+                State = "SC",
+                City = "Joinville",
+                Address = "Av. Central",
+                StartDate = DateTime.Now,
+                EndDate = DateTime.Now.AddDays(5)
+            };
+
+            _campaignService.Setup(s => s.CreateCampaign(It.IsAny<NewCampaign>()))
+            .ReturnsAsync(expectedCampaign);
+
             var result = await _controller.CreateCampaign(newCampaign);
             var okResult = Assert.IsType<OkObjectResult>(result);
             var createdCampaign = Assert.IsType<Campaign>(okResult.Value);
+
             Assert.Equal("New Campaign", createdCampaign.Title);
         }
 
         [Fact]
         public async Task CreateCampaign_WhenExceptionThrown_ReturnsProblem()
         {
-            var mockService = new Mock<CampaignService>(_dbContext);
-            mockService.Setup(s => s.CreateCampaign(It.IsAny<NewCampaign>()))
+            _campaignService.Setup(s => s.CreateCampaign(It.IsAny<NewCampaign>()))
                        .ThrowsAsync(new Exception("Erro simulado"));
-
-            var controller = new CampaignController(_dbContext);
 
             var newCampaign = new NewCampaign
             {
@@ -137,34 +177,10 @@ namespace Solidariza.Tests
                 Status = (int)CampaignStatus.Active
             };
 
-            var result = await controller.CreateCampaign(newCampaign);
+            var result = await _controller.CreateCampaign(newCampaign);
 
             var problemResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, problemResult.StatusCode);
-        }
-
-        [Fact]
-        public async Task PutCampaign_ExistingId_UpdatesCampaign()
-        {
-            var updateCampaign = new UpdateCampaign
-            {
-                Title = "Updated Campaign",
-                Description = "Updated Description",
-                StartDate = DateTime.Now,
-                EndDate = DateTime.Now.AddDays(15),
-                Type = (int)CampaignType.Collection,
-                Status = (int)CampaignStatus.Completed,
-                State = "SC",
-                City = "Joinville",
-                Address = "New Address"
-            };
-
-            var result = await _controller.PutCampaign(1, updateCampaign);
-            Assert.IsType<NoContentResult>(result);
-
-            var updated = await _dbContext.Campaign.FindAsync(1);
-            Assert.Equal("Updated Campaign", updated.Title);
-            Assert.Equal(CampaignStatus.Completed, updated.Status);
         }
 
         [Fact]

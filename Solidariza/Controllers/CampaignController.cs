@@ -1,8 +1,7 @@
-using Solidariza;
-using Solidariza.Services;
 using Microsoft.AspNetCore.Mvc;
 using Solidariza.Models;
 using Solidariza.Models.Enum;
+using Solidariza.Interfaces.Services;
 
 namespace Solidariza.Controllers
 {
@@ -11,33 +10,33 @@ namespace Solidariza.Controllers
     public class CampaignController : ControllerBase
     {
         private readonly ConnectionDB _dbContext;
+        private readonly ICampaignService _campaignService;
 
-        public CampaignController(ConnectionDB dbContext)
+        public CampaignController(ConnectionDB dbContext, ICampaignService campaignService)
         {
             _dbContext = dbContext;
+            _campaignService = campaignService;
         }
 
         [HttpGet("")]
         public async Task<ActionResult<List<Campaign>>> GetCampaigns()
         {
-            CampaignService campaignService = new CampaignService(_dbContext);
 
-            List<Campaign> campaign = await campaignService.GetCampaigns();
+            List<Campaign> campaign = await _campaignService.GetCampaigns();
 
             if (campaign == null)
             {
                 return NotFound();
             }
 
-            return campaign;
+            return Ok(campaign);
         }
         
         [HttpGet("{id}")]
         public async Task<ActionResult<Campaign>> GetCampaignById(int id)
         {
-            CampaignService campaignService = new CampaignService(_dbContext);
 
-            Campaign? campaign = await campaignService.GetCampaignById(id);
+            Campaign? campaign = await _campaignService.GetCampaignById(id);
 
             if (campaign == null)
             {
@@ -50,40 +49,33 @@ namespace Solidariza.Controllers
         [HttpGet("User/{userId}")]
         public async Task<ActionResult<List<Campaign>>> GetCampaignByUserId(int userId)
         {
-            CampaignService campaignService = new CampaignService(_dbContext);
-
-            List<Campaign> campaign = await campaignService.GetCampaignByUserId(userId);
+            List<Campaign> campaign = await _campaignService.GetCampaignByUserId(userId);
 
             if (campaign == null)
             {
                 return NotFound();
             }
 
-            return campaign;
+            return Ok(campaign);
         }
 
-        [HttpPost("")]
-        public async Task<ActionResult> CreateCampaign(NewCampaign newCampaign)
+        [HttpPost]
+        public async Task<IActionResult> CreateCampaign([FromBody] NewCampaign newCampaign)
         {
             try
             {
-                CampaignService campaignService = new CampaignService(_dbContext);
-                Campaign campaign = await campaignService.CreateCampaign(newCampaign);
-
+                var campaign = await _campaignService.CreateCampaign(newCampaign);
                 return Ok(campaign);
             }
             catch (Exception ex)
             {
-                return Problem(ex.Message);
+                return StatusCode(500, new { message = ex.Message });
             }
-
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCampaign(int id, UpdateCampaign atualizarCampaign)
         {
-            CampaignService campaignService = new CampaignService(_dbContext);
-
             var existingCampaign = await _dbContext.Campaign.FindAsync(id);
 
             if (existingCampaign == null)
@@ -91,18 +83,21 @@ namespace Solidariza.Controllers
                 return NotFound();
             }
 
-            Campaign campaign = new Campaign();
-            campaign.Title = atualizarCampaign.Title;
-            campaign.Description = atualizarCampaign.Description;
-            campaign.StartDate = Convert.ToDateTime(atualizarCampaign.StartDate);
-            campaign.EndDate = Convert.ToDateTime(atualizarCampaign.EndDate);
-            campaign.Status = (CampaignStatus)Convert.ToInt32(atualizarCampaign.Status);
-            campaign.Type = (CampaignType)Convert.ToInt32(atualizarCampaign.Type);
-            campaign.State = atualizarCampaign.State;
-            campaign.City = atualizarCampaign.City;
-            campaign.Address = atualizarCampaign.Address;
+            // Cria um objeto temporário só para passar os dados, sem trackear no DbContext
+            var updatedCampaign = new Campaign
+            {
+                Title = atualizarCampaign.Title,
+                Description = atualizarCampaign.Description,
+                StartDate = Convert.ToDateTime(atualizarCampaign.StartDate),
+                EndDate = Convert.ToDateTime(atualizarCampaign.EndDate),
+                Status = (CampaignStatus)Convert.ToInt32(atualizarCampaign.Status),
+                Type = (CampaignType)Convert.ToInt32(atualizarCampaign.Type),
+                State = atualizarCampaign.State,
+                City = atualizarCampaign.City,
+                Address = atualizarCampaign.Address
+            };
 
-            await campaignService.AtualizarCampaign(existingCampaign, campaign);
+            await _campaignService.AtualizarCampaign(existingCampaign, updatedCampaign);
 
             return NoContent();
         }
@@ -110,8 +105,6 @@ namespace Solidariza.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCampaign(int id)
         {
-            CampaignService campaignService = new CampaignService(_dbContext);
-
             var campaign = await _dbContext.Campaign.FindAsync(id);
 
             if (campaign == null)
@@ -119,7 +112,7 @@ namespace Solidariza.Controllers
                 return NotFound();
             }
 
-            await campaignService.DeletarCampaign(campaign);
+            await _campaignService.DeletarCampaign(campaign);
 
             return NoContent();
         }
