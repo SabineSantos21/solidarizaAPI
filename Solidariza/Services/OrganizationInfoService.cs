@@ -63,26 +63,26 @@ namespace Solidariza.Services
 
         }
 
-        public async Task AtualizarOrganizationInfo(OrganizationInfo existingOrganizationInfo, OrganizationInfo OrganizationInfo)
+        public async Task AtualizarOrganizationInfo(OrganizationInfo existingOrganizationInfo, OrganizationInfo organizationInfo)
         {
 
-            existingOrganizationInfo.PixKey = OrganizationInfo.PixKey;
-            existingOrganizationInfo.ContactPhone = OrganizationInfo.ContactPhone;
-            existingOrganizationInfo.ContactName = OrganizationInfo.ContactName;
-            existingOrganizationInfo.PixType = OrganizationInfo.PixType;
-            existingOrganizationInfo.BeneficiaryName = OrganizationInfo.BeneficiaryName;
-            existingOrganizationInfo.BeneficiaryCity = OrganizationInfo.BeneficiaryCity;
+            existingOrganizationInfo.PixKey = organizationInfo.PixKey;
+            existingOrganizationInfo.ContactPhone = organizationInfo.ContactPhone;
+            existingOrganizationInfo.ContactName = organizationInfo.ContactName;
+            existingOrganizationInfo.PixType = organizationInfo.PixType;
+            existingOrganizationInfo.BeneficiaryName = organizationInfo.BeneficiaryName;
+            existingOrganizationInfo.BeneficiaryCity = organizationInfo.BeneficiaryCity;
 
             _dbContext.Organization_Info.Update(existingOrganizationInfo);
             await _dbContext.SaveChangesAsync();
 
         }
 
-        public async Task<OrganizationInfo> AtualizarOrganizationInfoValidate(OrganizationInfo existingOrganizationInfo, OrganizationInfo OrganizationInfo)
+        public async Task<OrganizationInfo> AtualizarOrganizationInfoValidate(OrganizationInfo existingOrganizationInfo, OrganizationInfo organizationInfo)
         {
 
-            existingOrganizationInfo.DisapprovalReason = OrganizationInfo.DisapprovalReason;
-            existingOrganizationInfo.IsOrganizationApproved = OrganizationInfo.IsOrganizationApproved;
+            existingOrganizationInfo.DisapprovalReason = organizationInfo.DisapprovalReason;
+            existingOrganizationInfo.IsOrganizationApproved = organizationInfo.IsOrganizationApproved;
 
             _dbContext.Organization_Info.Update(existingOrganizationInfo);
             await _dbContext.SaveChangesAsync();

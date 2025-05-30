@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Solidariza.Models.Enum;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Solidariza.Interfaces.Services;
 
 namespace Solidariza.Tests
 {
@@ -15,6 +16,8 @@ namespace Solidariza.Tests
     {
         private readonly CampaignVolunteerController _controller;
         private readonly ConnectionDB _dbContext;
+        public Mock<ICampaignVolunteerService> _campaignVolunteerService { get; set; }
+
 
         public CampaignVolunteerControllerTests()
         {
@@ -29,7 +32,8 @@ namespace Solidariza.Tests
 
             SeedDatabase(_dbContext);
 
-            _controller = new CampaignVolunteerController(_dbContext);
+            _campaignVolunteerService = new Mock<ICampaignVolunteerService>();
+            _controller = new CampaignVolunteerController(_dbContext, _campaignVolunteerService.Object);
         }
 
         private static void SeedDatabase(ConnectionDB dbContext)
@@ -125,5 +129,74 @@ namespace Solidariza.Tests
             var result = await _controller.DeleteCampaignVolunteer(testId);
             Assert.IsType<NotFoundResult>(result);
         }
+
+        [Fact]
+        public async Task GetCampaignVolunteerById_ExistingId_ReturnsVolunteer()
+        {
+            var existing = _dbContext.Campaign_Volunteers.First();
+
+            // Setup do mock para retornar o volunteer esperado
+            _campaignVolunteerService
+                .Setup(s => s.GetCampaignVolunteerById(existing.CampaignVolunteerId))
+                .ReturnsAsync(existing);
+
+            var result = await _controller.GetCampaignVolunteerById(existing.CampaignVolunteerId);
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var volunteer = Assert.IsType<CampaignVolunteer>(okResult.Value);
+            Assert.NotNull(volunteer);
+            Assert.Equal(existing.CampaignVolunteerId, volunteer.CampaignVolunteerId);
+        }
+
+        [Fact]
+        public async Task CreateCampaignVolunteer_ExistingVolunteer_ReturnsExisting()
+        {
+            var existing = _dbContext.Campaign_Volunteers.First();
+
+            var newVolunteer = new NewCampaignVolunteer
+            {
+                CampaignId = existing.CampaignId,
+                UserId = existing.UserId
+            };
+
+            var result = await _controller.CreateCampaignVolunteer(newVolunteer);
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnedVolunteer = Assert.IsType<CampaignVolunteer>(okResult.Value);
+
+            Assert.Equal(existing.CampaignVolunteerId, returnedVolunteer.CampaignVolunteerId);
+        }
+
+        [Fact]
+        public async Task PutCampaignVolunteer_NonExistingId_ReturnsNotFound()
+        {
+            var update = new UpdateCampaignVolunteer
+            {
+                IsApproved = (int)CampaignVolunteerStatus.APROVED
+            };
+
+            var result = await _controller.PutCampaignVolunteer(999, update);
+            Assert.IsType<NotFoundResult>(result);
+        }
+
+        [Fact]
+        public async Task CreateCampaignVolunteer_WithException_ReturnsProblem()
+        {
+            var newVolunteer = new NewCampaignVolunteer
+            {
+                CampaignId = 99,
+                UserId = 99
+            };
+
+            // Força uma exceção ao chamar CreateCampaignVolunteer
+            _campaignVolunteerService
+                .Setup(s => s.CreateCampaignVolunteer(It.IsAny<NewCampaignVolunteer>()))
+                .ThrowsAsync(new Exception("Erro simulado"));
+
+            var result = await _controller.CreateCampaignVolunteer(newVolunteer);
+
+            var problem = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, problem.StatusCode);
+        }
+
     }
 }
