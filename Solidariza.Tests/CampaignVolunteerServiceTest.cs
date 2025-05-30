@@ -118,7 +118,7 @@ namespace Solidariza.Tests
             await _service.AtualizarCampaignVolunteer(volunteer, update);
 
             var updated = await _dbContext.Campaign_Volunteers.FindAsync(volunteer.CampaignVolunteerId);
-            Assert.Equal(CampaignVolunteerStatus.APROVED, updated.IsApproved);
+            Assert.Equal(CampaignVolunteerStatus.APROVED, updated?.IsApproved);
         }
 
         [Fact]
