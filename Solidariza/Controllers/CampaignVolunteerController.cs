@@ -44,7 +44,7 @@ namespace Solidariza.Controllers
                 return NotFound();
             }
 
-            return campaignVolunteer;
+            return Ok(campaignVolunteer);
         }
         
         [HttpGet("User/{userId}")]
@@ -57,7 +57,7 @@ namespace Solidariza.Controllers
                 return NotFound();
             }
 
-            return campaignVolunteer;
+            return Ok(campaignVolunteer);
         }
         
         [HttpGet("User/{userId}/Aproved")]
@@ -70,7 +70,7 @@ namespace Solidariza.Controllers
                 return NotFound();
             }
 
-            return campaignVolunteer;
+            return Ok(campaignVolunteer);
         }
 
         [HttpPost("")]

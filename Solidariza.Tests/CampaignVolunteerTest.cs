@@ -63,28 +63,72 @@ namespace Solidariza.Tests
         public async Task GetCampaignVolunteerByCampaignId_ExistingCampaignId_ReturnsVolunteers()
         {
             int testCampaignId = 1;
+
+            var volunteers = new List<CampaignVolunteer>
+            {
+                new CampaignVolunteer { CampaignId = testCampaignId, UserId = 1, IsApproved = CampaignVolunteerStatus.PENDING }
+            };
+
+            _campaignVolunteerService
+                .Setup(s => s.GetCampaignVolunteersByCampaignId(testCampaignId))
+                .ReturnsAsync(volunteers);
+
             var result = await _controller.GetCampaignVolunteerByCampaignId(testCampaignId);
-            var okResult = Assert.IsType<ActionResult<List<CampaignVolunteer>>>(result);
-            Assert.NotNull(okResult.Value);
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var returnedVolunteers = Assert.IsType<List<CampaignVolunteer>>(okResult.Value);
+            Assert.NotEmpty(returnedVolunteers);
         }
+
 
         [Fact]
         public async Task GetCampaignVolunteerByUserId_ExistingUserId_ReturnsVolunteers()
         {
             int testUserId = 1;
+
+            var volunteers = new List<CampaignVolunteer>
+            {
+                new CampaignVolunteer { CampaignId = 1, UserId = testUserId, IsApproved = CampaignVolunteerStatus.PENDING }
+            };
+
+            _campaignVolunteerService
+                .Setup(s => s.GetCampaignVolunteersByUserId(testUserId))
+                .ReturnsAsync(volunteers);
+
             var result = await _controller.GetCampaignVolunteerByUserId(testUserId);
-            var okResult = Assert.IsType<ActionResult<List<CampaignVolunteer>>>(result);
-            Assert.NotNull(okResult.Value);
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var returnedVolunteers = Assert.IsType<List<CampaignVolunteer>>(okResult.Value);
+            Assert.NotEmpty(returnedVolunteers);
         }
+
 
         [Fact]
         public async Task GetCampaignVolunteerByUserIdAndAproved_ExistingUserId_ReturnsApprovedVolunteers()
         {
             int testUserId = 1;
+
+            var approvedVolunteers = new List<CampaignVolunteer>
+            {
+                new CampaignVolunteer
+                {
+                    CampaignId = 1,
+                    UserId = testUserId,
+                    IsApproved = CampaignVolunteerStatus.APROVED // Ou o valor correto para "aprovado"
+                }
+            };
+
+            _campaignVolunteerService
+                .Setup(s => s.GetCampaignVolunteersByUserIdAndAproved(testUserId))
+                .ReturnsAsync(approvedVolunteers);
+
             var result = await _controller.GetCampaignVolunteerByUserIdAndAproved(testUserId);
-            var okResult = Assert.IsType<ActionResult<List<CampaignVolunteer>>>(result);
-            Assert.NotNull(okResult.Value);
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var returnedVolunteers = Assert.IsType<List<CampaignVolunteer>>(okResult.Value);
+            Assert.NotEmpty(returnedVolunteers);
         }
+
 
         [Fact]
         public async Task CreateCampaignVolunteer_NewVolunteer_ReturnsCreatedVolunteer()
@@ -95,11 +139,24 @@ namespace Solidariza.Tests
                 UserId = 2
             };
 
+            var createdVolunteer = new CampaignVolunteer
+            {
+                CampaignId = 2,
+                UserId = 2,
+                IsApproved = CampaignVolunteerStatus.PENDING
+            };
+
+            _campaignVolunteerService
+                .Setup(s => s.CreateCampaignVolunteer(It.IsAny<NewCampaignVolunteer>()))
+                .ReturnsAsync(createdVolunteer);
+
             var result = await _controller.CreateCampaignVolunteer(newVolunteer);
+
             var okResult = Assert.IsType<OkObjectResult>(result);
-            var createdVolunteer = Assert.IsType<CampaignVolunteer>(okResult.Value);
-            Assert.Equal(2, createdVolunteer.UserId);
+            var returnedVolunteer = Assert.IsType<CampaignVolunteer>(okResult.Value);
+            Assert.Equal(2, returnedVolunteer.UserId);
         }
+
 
         [Fact]
         public async Task PutCampaignVolunteer_ExistingId_UpdatesVolunteerStatus()
