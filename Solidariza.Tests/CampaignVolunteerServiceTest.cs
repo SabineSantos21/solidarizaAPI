@@ -22,7 +22,6 @@ namespace Solidariza.Tests
 
             _dbContext = new ConnectionDB(options);
 
-            // Limpar e popular o banco
             _dbContext.Database.EnsureDeleted();
             _dbContext.Database.EnsureCreated();
 
