@@ -3,7 +3,7 @@ name: CI/CD .NET Core App para Azure WebApp
 on:
   push:
     branches:
-      - main         # build, testes, sonar, deploy
+      - master         # build, testes, sonar, deploy
       - develop      # build, testes, sonar
       - 'feature/**' # build, testes, sonar
       - 'release/**' # build, testes, sonar
@@ -121,7 +121,7 @@ jobs:
           find ./publish -name 'hostpolicy.dll'
 
       - name: Limpar wwwroot via Kudu API
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/master'
         env:
           PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         run: |
@@ -131,7 +131,7 @@ jobs:
           sleep 5
 
       - name: Deploy para Azure Web App
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/master'
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'SolidarizaAPI'
