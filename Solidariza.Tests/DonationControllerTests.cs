@@ -21,9 +21,9 @@ namespace Solidariza.Tests
             return new ConnectionDB(options);
         }
 
-        private DonationController CreateController(ConnectionDB dbContext, Mock<IDonationService> donationServiceMock)
+        private static DonationController CreateController(ConnectionDB dbContext, Mock<IDonationService> donationServiceMock)
         {
-            return new DonationController(dbContext, donationServiceMock.Object);
+            return new DonationController(donationServiceMock.Object);
         }
 
         [Fact]
@@ -56,7 +56,7 @@ namespace Solidariza.Tests
             var okResult = Assert.IsType<OkObjectResult>(result);
             var returnedOrgInfo = Assert.IsType<OrganizationInfo>(okResult.Value);
             Assert.Equal(orgInfo.OrganizationInfoId, returnedOrgInfo.OrganizationInfoId);
-            Assert.Equal(orgInfo.DonationQRCode.Qrcode_base64, returnedOrgInfo.DonationQRCode.Qrcode_base64);
+            Assert.Equal(orgInfo.DonationQRCode.Qrcode_base64, returnedOrgInfo?.DonationQRCode?.Qrcode_base64);
         }
 
         [Fact]
@@ -88,7 +88,7 @@ namespace Solidariza.Tests
             donationServiceMock.Setup(s => s.GetQRCodePixByCampaignId(It.IsAny<int>()))
                 .ThrowsAsync(new Exception("Erro inesperado"));
 
-            var controller = new DonationController(context, donationServiceMock.Object);
+            var controller = new DonationController(donationServiceMock.Object);
 
             // Act
             var result = await controller.GetDonationQRCode(1);

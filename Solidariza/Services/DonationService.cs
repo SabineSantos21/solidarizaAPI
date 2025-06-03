@@ -7,14 +7,12 @@ namespace Solidariza.Services
 {
     public class DonationService: IDonationService
     {
-        private readonly ConnectionDB _dbContext;
         private readonly HttpClient _httpClient;
         private readonly ICampaignService _campaignService;
         private readonly IOrganizationInfoService _organizationInfoService;
 
-        public DonationService(ConnectionDB dbContext, ICampaignService campaignService, IOrganizationInfoService organizationInfoService) 
+        public DonationService(ICampaignService campaignService, IOrganizationInfoService organizationInfoService) 
         {
-            _dbContext = dbContext;
             _httpClient = new HttpClient();
             _campaignService = campaignService;
             _organizationInfoService = organizationInfoService;
