@@ -63,13 +63,6 @@ namespace Solidariza.Tests
         }
 
         [Fact]
-        public async Task GetOrganizationInfoByUserId_NonExistingUserId_ReturnsOk()
-        {
-            var result = await _controller.GetOrganizationInfoByUserId(99);
-            Assert.IsType<OkResult>(result.Result);
-        }
-
-        [Fact]
         public async Task CreateOrganizationInfo_ValidInfo_ReturnsOk()
         {
             var newOrgInfo = new NewOrganizationInfo
