@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - master         # build, testes, sonar, deploy
-      - develop      # build, testes, sonar
-      - 'feature/**' # build, testes, sonar
-      - 'release/**' # build, testes, sonar
+      - develop        # build, testes, sonar
+      - 'feature/**'   # build, testes, sonar
+      - 'release/**'   # build, testes, sonar
 
 jobs:
   sonarcloud-analyze:
@@ -46,9 +46,6 @@ jobs:
           New-Item -Path .\.sonar\scanner -ItemType Directory -Force
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
 
-      - name: Install dotnet-coverage
-        run: dotnet tool install --global dotnet-coverage
-
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -58,7 +55,7 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml"
+            /d:sonar.coverageReportPaths="TestResults/**/coverage.cobertura.xml"
 
       - name: Restore dependencies
         run: dotnet restore
@@ -66,12 +63,11 @@ jobs:
       - name: Build solution
         run: dotnet build --no-restore --no-incremental
 
-      - name: Run tests with coverage
-        run: |
-          dotnet-coverage collect "dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity normal" -f xml -o "coverage.xml"
+      - name: Run tests with Coverlet and generate cobertura
+        run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
 
-      - name: Mostrar arquivo de cobertura gerado
-        run: Get-ChildItem -Path . -Filter "coverage.xml"
+      - name: Verificar cobertura gerada
+        run: Get-ChildItem -Recurse -Filter "coverage.cobertura.xml"
 
       - name: End SonarCloud analysis
         env:
