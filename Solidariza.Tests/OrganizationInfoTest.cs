@@ -7,13 +7,16 @@ using Solidariza.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Solidariza.Models.Enum;
+using System;
+using System.Linq;
 
 namespace Solidariza.Tests
 {
     public class OrganizationInfoControllerTests
     {
-        private readonly OrganizationInfoController _controller;
         private readonly ConnectionDB _dbContext;
+        private readonly Mock<ValidateOrganizationService> _mockValidateService;
+        private readonly OrganizationInfoController _controller;
 
         public OrganizationInfoControllerTests()
         {
@@ -28,13 +31,15 @@ namespace Solidariza.Tests
 
             SeedDatabase(_dbContext);
 
-            _controller = new OrganizationInfoController(_dbContext);
+            _mockValidateService = new Mock<ValidateOrganizationService>();
+            _controller = new OrganizationInfoController(_dbContext, _mockValidateService.Object);
         }
 
         private static void SeedDatabase(ConnectionDB dbContext)
         {
             dbContext.Organization_Info.Add(new OrganizationInfo
             {
+                OrganizationInfoId = 1,
                 UserId = 1,
                 ContactName = "Contato Teste",
                 ContactPhone = "47983758492",
@@ -42,6 +47,9 @@ namespace Solidariza.Tests
                 PixType = PixType.CPF,
                 BeneficiaryName = "PIX Teste",
                 BeneficiaryCity = "Joinville",
+                IsOrganizationApproved = false,
+                DisapprovalReason = null,
+                User = new User { UserId = 1 } // Adiciona um usuário associado para satisfazer a relação
             });
 
             dbContext.SaveChanges();
@@ -53,6 +61,8 @@ namespace Solidariza.Tests
             var result = await _controller.GetOrganizationInfoById(1);
             var okResult = Assert.IsType<ActionResult<OrganizationInfo>>(result);
             Assert.NotNull(okResult.Value);
+            Assert.Equal(1, okResult.Value.OrganizationInfoId);
+            Assert.Equal("Contato Teste", okResult.Value.ContactName);
         }
 
         [Fact]
@@ -60,6 +70,40 @@ namespace Solidariza.Tests
         {
             var result = await _controller.GetOrganizationInfoById(99);
             Assert.IsType<NotFoundResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task GetOrganizationInfoByUserId_ExistingUserId_ReturnsOrganizationInfo()
+        {
+            // Verificar se o dado está no banco
+            var seededOrg = _dbContext.Organization_Info.FirstOrDefault(x => x.UserId == 1);
+            Assert.NotNull(seededOrg);
+            Assert.Equal(1, seededOrg.UserId);
+            Assert.Equal("Contato Teste", seededOrg.ContactName);
+
+            // Depuração: Chamar o serviço diretamente para verificar
+            var service = new OrganizationInfoService(_dbContext);
+            var serviceResult = await service.GetOrganizationInfoByUserId(1);
+            Assert.NotNull(serviceResult);
+            Assert.Equal(1, serviceResult.UserId);
+            Assert.Equal("Contato Teste", serviceResult.ContactName);
+        }
+
+        [Fact]
+        public async Task GetOrganizationInfoByUserId_NonExistingUserId_ReturnsNotFound()
+        {
+            var result = await _controller.GetOrganizationInfoByUserId(99);
+            Assert.IsType<NotFoundResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task GetOrganizationInfoByUserId_ThrowsException_ReturnsProblem()
+        {
+            var mockController = new OrganizationInfoController(null!, _mockValidateService.Object); // Força exceção de null
+            var result = await mockController.GetOrganizationInfoByUserId(1);
+            var problemResult = Assert.IsType<ObjectResult>(result.Result);
+            Assert.Equal(500, problemResult.StatusCode);
+            Assert.IsType<ProblemDetails>(problemResult.Value);
         }
 
         [Fact]
@@ -79,7 +123,21 @@ namespace Solidariza.Tests
             var result = await _controller.CreateOrganizationInfo(newOrgInfo);
             var okResult = Assert.IsType<OkObjectResult>(result);
             Assert.NotNull(okResult.Value);
-            Assert.IsType<OrganizationInfo>(okResult.Value);
+            var createdOrg = Assert.IsType<OrganizationInfo>(okResult.Value);
+            Assert.Equal(2, createdOrg.UserId);
+            Assert.Equal("New Contact", createdOrg.ContactName);
+        }
+
+        [Fact]
+        public async Task CreateOrganizationInfo_ThrowsException_ReturnsProblem()
+        {
+            var mockController = new OrganizationInfoController(null!, _mockValidateService.Object); // Força exceção de null
+            var newOrgInfo = new NewOrganizationInfo();
+
+            var result = await mockController.CreateOrganizationInfo(newOrgInfo);
+            var problem = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, problem.StatusCode);
+            Assert.IsType<ProblemDetails>(problem.Value);
         }
 
         [Fact]
@@ -97,33 +155,12 @@ namespace Solidariza.Tests
 
             var result = await _controller.PutOrganizationInfo(1, updateOrgInfo);
             Assert.IsType<NoContentResult>(result);
-        }
 
-        [Fact]
-        public async Task DeleteOrganizationInfo_ExistingId_DeletesAndReturnsNoContent()
-        {
-            var result = await _controller.DeleteOrganizationInfo(1);
-            Assert.IsType<NoContentResult>(result);
-        }
-
-        [Fact]
-        public async Task DeleteOrganizationInfo_NonExistingId_ReturnsNotFound()
-        {
-            var result = await _controller.DeleteOrganizationInfo(99);
-            Assert.IsType<NotFoundResult>(result);
-        }
-
-        [Fact]
-        public async Task CreateOrganizationInfo_ThrowsException_ReturnsProblem()
-        {
-            var mockController = new OrganizationInfoController(null!); // força exceção de null
-            var newOrgInfo = new NewOrganizationInfo();
-
-            var result = await mockController.CreateOrganizationInfo(newOrgInfo);
-
-            var problem = Assert.IsType<ObjectResult>(result);
-            Assert.Equal(500, problem.StatusCode);
-            Assert.IsType<ProblemDetails>(problem.Value);
+            var updatedOrg = await _dbContext.Organization_Info.FindAsync(1);
+            Assert.NotNull(updatedOrg);
+            Assert.Equal("Updated Contact", updatedOrg.ContactName);
+            Assert.Equal("Curitiba", updatedOrg.BeneficiaryCity);
+            Assert.Equal(PixType.CNPJ, updatedOrg.PixType);
         }
 
         [Fact]
@@ -144,6 +181,23 @@ namespace Solidariza.Tests
         }
 
         [Fact]
+        public async Task DeleteOrganizationInfo_ExistingId_DeletesAndReturnsNoContent()
+        {
+            var result = await _controller.DeleteOrganizationInfo(1);
+            Assert.IsType<NoContentResult>(result);
+
+            var deletedOrg = await _dbContext.Organization_Info.FindAsync(1);
+            Assert.Null(deletedOrg);
+        }
+
+        [Fact]
+        public async Task DeleteOrganizationInfo_NonExistingId_ReturnsNotFound()
+        {
+            var result = await _controller.DeleteOrganizationInfo(99);
+            Assert.IsType<NotFoundResult>(result);
+        }
+
+        [Fact]
         public async Task ValidateOrganization_NonExistingId_ReturnsNotFound()
         {
             var result = await _controller.ValidateOrganization(999, "12345678000190");
@@ -151,20 +205,10 @@ namespace Solidariza.Tests
         }
 
         [Fact]
-        public async Task GetOrganizationInfoByUserId_NonExistingUserId_ReturnsNotFound()
-        {
-            var result = await _controller.GetOrganizationInfoByUserId(99);
-            Assert.IsType<NotFoundResult>(result.Result);
-        }
-
-        [Fact]
         public async Task ValidateOrganization_ThrowsException_ReturnsProblem()
         {
-            // Arrange
-            var controller = new OrganizationInfoController(null!); // força exceção ao acessar o contexto
-
+            var controller = new OrganizationInfoController(null!, _mockValidateService.Object); // Força exceção ao acessar o contexto
             var result = await controller.ValidateOrganization(-1, null!);
-
             var objectResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, objectResult.StatusCode);
             Assert.IsType<ProblemDetails>(objectResult.Value);

@@ -11,17 +11,18 @@ namespace Solidariza.Controllers
     public class OrganizationInfoController : ControllerBase
     {
         private readonly ConnectionDB _dbContext;
+        private readonly ValidateOrganizationService _validateOrganizationService;
 
-        public OrganizationInfoController(ConnectionDB dbContext)
+        public OrganizationInfoController(ConnectionDB dbContext, ValidateOrganizationService validateOrganizationService)
         {
             _dbContext = dbContext;
+            _validateOrganizationService = validateOrganizationService;
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<OrganizationInfo>> GetOrganizationInfoById(int id)
         {
             OrganizationInfoService organizationInfoService = new OrganizationInfoService(_dbContext);
-
             OrganizationInfo? organizationInfo = await organizationInfoService.GetOrganizationInfoById(id);
 
             if (organizationInfo == null)
@@ -38,7 +39,6 @@ namespace Solidariza.Controllers
             try
             {
                 OrganizationInfoService organizationInfoService = new OrganizationInfoService(_dbContext);
-
                 OrganizationInfo? organizationInfo = await organizationInfoService.GetOrganizationInfoByUserId(userId);
 
                 if (organizationInfo == null)
@@ -52,7 +52,6 @@ namespace Solidariza.Controllers
             {
                 return Problem(ex.Message);
             }
-            
         }
 
         [HttpPost("")]
@@ -69,14 +68,12 @@ namespace Solidariza.Controllers
             {
                 return Problem(ex.Message);
             }
-
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> PutOrganizationInfo(int id, UpdateOrganizationInfo atualizarOrganizationInfo)
         {
             OrganizationInfoService organizationInfoService = new OrganizationInfoService(_dbContext);
-
             var existingOrganizationInfo = await _dbContext.Organization_Info.FindAsync(id);
 
             if (existingOrganizationInfo == null)
@@ -101,7 +98,6 @@ namespace Solidariza.Controllers
         public async Task<IActionResult> DeleteOrganizationInfo(int id)
         {
             OrganizationInfoService organizationInfoService = new OrganizationInfoService(_dbContext);
-
             var organizationInfo = await _dbContext.Organization_Info.FindAsync(id);
 
             if (organizationInfo == null)
@@ -126,8 +122,7 @@ namespace Solidariza.Controllers
                     return NotFound();
                 }
 
-                ValidateOrganizationService validateOrganizationService = new ValidateOrganizationService();
-                ConsultCnpjResponse organizationValid = await validateOrganizationService.ConsultCNPJ(cnpj);
+                ConsultCnpjResponse organizationValid = await _validateOrganizationService.ConsultCNPJ(cnpj);
 
                 OrganizationInfo organizationInfo = existingOrganizationInfo;
                 organizationInfo.DisapprovalReason = organizationValid.DisapprovalReason;
@@ -142,8 +137,6 @@ namespace Solidariza.Controllers
             {
                 return Problem(ex.Message);
             }
-
         }
     }
-
 }
