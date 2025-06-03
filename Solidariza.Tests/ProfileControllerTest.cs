@@ -34,34 +34,68 @@ namespace Solidariza.Tests
 
         private static void SeedDatabase(ConnectionDB dbContext)
         {
+            var userOrg = new User
+            {
+                UserId = 1,
+                Name = "Org User",
+                Email = "org@example.com",
+                Password = "pass",
+                Type = UserType.Organization
+            };
+
+            var userVol = new User
+            {
+                UserId = 2,
+                Name = "Volunteer User",
+                Email = "vol@example.com",
+                Password = "pass",
+                Type = UserType.Volunteer
+            };
+
+            dbContext.User.AddRange(userOrg, userVol);
+
             dbContext.Profile.Add(new Profile
             {
                 ProfileId = 1,
-                Name = "Profile 1",
+                Name = "Org Profile",
                 Phone = "123456789",
-                Description = "Description 1",
-                Address = "Address 1",
-                City = "City 1",
-                State = "State 1",
+                Description = "Org Desc",
+                Address = "Org Address",
+                City = "Org City",
+                State = "Org State",
                 Zip = "00000-000",
-                UserId = 1,
+                UserId = userOrg.UserId
             });
 
             dbContext.Profile.Add(new Profile
             {
                 ProfileId = 2,
-                Name = "Profile 2",
+                Name = "Vol Profile",
                 Phone = "987654321",
-                Description = "Description 2",
-                Address = "Address 2",
-                City = "City 2",
-                State = "State 2",
+                Description = "Vol Desc",
+                Address = "Vol Address",
+                City = "Vol City",
+                State = "Vol State",
                 Zip = "11111-111",
-                UserId = 2,
+                UserId = userVol.UserId
             });
 
             dbContext.SaveChanges();
         }
+
+
+        [Fact]
+        public async Task GetProfilesOrganization_ReturnsOk_WithProfiles()
+        {
+            var result = await _controller.GetProfilesOrganization();
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var profiles = Assert.IsType<List<Profile>>(okResult.Value);
+
+            Assert.NotEmpty(profiles);
+            Assert.All(profiles, p => Assert.Equal(UserType.Organization, p.User.Type));
+        }
+
 
         [Fact]
         public async Task GetProfileById_ReturnsProfile_WhenExists()
