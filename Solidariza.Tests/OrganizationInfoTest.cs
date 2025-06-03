@@ -119,5 +119,62 @@ namespace Solidariza.Tests
             var result = await _controller.DeleteOrganizationInfo(99);
             Assert.IsType<NotFoundResult>(result);
         }
+
+        [Fact]
+        public async Task CreateOrganizationInfo_ThrowsException_ReturnsProblem()
+        {
+            var mockController = new OrganizationInfoController(null!); // força exceção de null
+            var newOrgInfo = new NewOrganizationInfo();
+
+            var result = await mockController.CreateOrganizationInfo(newOrgInfo);
+
+            var problem = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, problem.StatusCode);
+            Assert.IsType<ProblemDetails>(problem.Value);
+        }
+
+        [Fact]
+        public async Task PutOrganizationInfo_NonExistingId_ReturnsNotFound()
+        {
+            var update = new UpdateOrganizationInfo
+            {
+                ContactName = "Name",
+                ContactPhone = "123",
+                PixKey = "key",
+                PixType = (int)PixType.CPF,
+                BeneficiaryName = "Ben",
+                BeneficiaryCity = "City"
+            };
+
+            var result = await _controller.PutOrganizationInfo(999, update);
+            Assert.IsType<NotFoundResult>(result);
+        }
+
+        [Fact]
+        public async Task ValidateOrganization_NonExistingId_ReturnsNotFound()
+        {
+            var result = await _controller.ValidateOrganization(999, "12345678000190");
+            Assert.IsType<NotFoundResult>(result);
+        }
+
+        [Fact]
+        public async Task GetOrganizationInfoByUserId_NonExistingUserId_ReturnsNotFound()
+        {
+            var result = await _controller.GetOrganizationInfoByUserId(99);
+            Assert.IsType<NotFoundResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task ValidateOrganization_ThrowsException_ReturnsProblem()
+        {
+            // Arrange
+            var controller = new OrganizationInfoController(null!); // força exceção ao acessar o contexto
+
+            var result = await controller.ValidateOrganization(-1, null!);
+
+            var objectResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, objectResult.StatusCode);
+            Assert.IsType<ProblemDetails>(objectResult.Value);
+        }
     }
 }

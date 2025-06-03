@@ -43,10 +43,10 @@ namespace Solidariza.Controllers
 
                 if (organizationInfo == null)
                 {
-                    return Ok();
+                    return NotFound();
                 }
 
-                return organizationInfo;
+                return Ok(organizationInfo);
             }
             catch (Exception ex)
             {
