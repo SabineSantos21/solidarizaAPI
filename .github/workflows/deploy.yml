@@ -3,10 +3,10 @@ name: CI/CD .NET Core App para Azure WebApp
 on:
   push:
     branches:
-      - master         # build, testes, sonar, deploy
-      - develop        # build, testes, sonar
-      - 'feature/**'   # build, testes, sonar
-      - 'release/**'   # build, testes, sonar
+      - master
+      - develop
+      - 'feature/**'
+      - 'release/**'
 
 jobs:
   sonarcloud-analyze:
@@ -55,7 +55,7 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.coverageReportPaths="TestResults/**/coverage.cobertura.xml"
+            /d:sonar.cs.cobertura.reportsPaths="coverage.cobertura.xml"
 
       - name: Restore dependencies
         run: dotnet restore
@@ -66,8 +66,14 @@ jobs:
       - name: Run tests with Coverlet and generate cobertura
         run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
 
+      - name: Copiar cobertura para raiz
+        shell: powershell
+        run: |
+          $coverageFile = Get-ChildItem -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
+          Copy-Item $coverageFile.FullName -Destination "coverage.cobertura.xml"
+
       - name: Verificar cobertura gerada
-        run: Get-ChildItem -Recurse -Filter "coverage.cobertura.xml"
+        run: Get-ChildItem -Path . -Filter "coverage.cobertura.xml"
 
       - name: End SonarCloud analysis
         env:
