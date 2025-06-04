@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - master         # build, testes, sonar, deploy
-      - develop        # build, testes, sonar
-      - 'feature/**'   # build, testes, sonar
-      - 'release/**'   # build, testes, sonar
+      - develop      # build, testes, sonar
+      - 'feature/**' # build, testes, sonar
+      - 'release/**' # build, testes, sonar
 
 jobs:
   sonarcloud-analyze:
@@ -22,7 +22,7 @@ jobs:
       - name: Checkout do código
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Necessário para SonarCloud analisar o histórico do Git
+          fetch-depth: 0
 
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
@@ -52,7 +52,6 @@ jobs:
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin `
             /k:"SabineSantos21_solidarizaAPI" `
