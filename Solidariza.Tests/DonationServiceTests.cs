@@ -3,21 +3,16 @@ using Moq.Protected;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Xunit;
 using Solidariza.Models;
 using Solidariza.Services;
 using Solidariza.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Threading;
-using System;
 
 namespace Solidariza.Tests
 {
     public class DonationServiceTests
     {
-        private ConnectionDB GetInMemoryDbContext()
+        private static ConnectionDB GetInMemoryDbContext()
         {
             var options = new DbContextOptionsBuilder<ConnectionDB>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -26,7 +21,7 @@ namespace Solidariza.Tests
             return new ConnectionDB(options);
         }
 
-        private HttpClient GetMockHttpClient(string responseContent)
+        private static HttpClient GetMockHttpClient(string responseContent)
         {
             var handlerMock = new Mock<HttpMessageHandler>();
 
@@ -73,24 +68,23 @@ namespace Solidariza.Tests
                 Name = "PIX COPY/PASTE"
             };
 
-            // Mock do ICampaignService
             var campaignServiceMock = new Mock<ICampaignService>();
             campaignServiceMock.Setup(s => s.GetCampaignById(1))
                 .ReturnsAsync(campaign);
 
-            // Mock do IOrganizationInfoService
             var orgInfoServiceMock = new Mock<IOrganizationInfoService>();
             orgInfoServiceMock.Setup(s => s.GetOrganizationInfoByUserId(1))
                 .ReturnsAsync(orgInfo);
 
             var mockedHttpClient = GetMockHttpClient(JsonSerializer.Serialize(expectedQRCode));
 
-            IDonationService service = new DonationService(context, campaignServiceMock.Object, orgInfoServiceMock.Object);
+            DonationService service = new DonationService(campaignServiceMock.Object, orgInfoServiceMock.Object);
 
             // Injeta HttpClient mockado via reflexão
-            typeof(DonationService)
-                .GetField("_httpClient", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                .SetValue(service, mockedHttpClient);
+            var field = typeof(DonationService)
+                .GetField("_httpClient", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Assert.NotNull(field);
+            field.SetValue(service, mockedHttpClient);
 
             // Act
             var result = await service.GetQRCodePixByCampaignId(1);
@@ -111,7 +105,7 @@ namespace Solidariza.Tests
 
             var orgInfoServiceMock = new Mock<IOrganizationInfoService>();
 
-            IDonationService service = new DonationService(context, campaignServiceMock.Object, orgInfoServiceMock.Object);
+            DonationService service = new DonationService(campaignServiceMock.Object, orgInfoServiceMock.Object);
 
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 service.GetQRCodePixByCampaignId(99));
@@ -133,7 +127,7 @@ namespace Solidariza.Tests
             orgInfoServiceMock.Setup(s => s.GetOrganizationInfoByUserId(1))
                 .ReturnsAsync((OrganizationInfo?)null);
 
-            IDonationService service = new DonationService(context, campaignServiceMock.Object, orgInfoServiceMock.Object);
+            DonationService service = new DonationService(campaignServiceMock.Object, orgInfoServiceMock.Object);
 
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 service.GetQRCodePixByCampaignId(1));
@@ -151,11 +145,12 @@ namespace Solidariza.Tests
             var campaignServiceMock = new Mock<ICampaignService>();
             var orgInfoServiceMock = new Mock<IOrganizationInfoService>();
 
-            IDonationService service = new DonationService(context, campaignServiceMock.Object, orgInfoServiceMock.Object);
+            DonationService service = new DonationService(campaignServiceMock.Object, orgInfoServiceMock.Object);
 
-            typeof(DonationService)
-                .GetField("_httpClient", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                .SetValue(service, client);
+            var field = typeof(DonationService)
+                .GetField("_httpClient", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Assert.NotNull(field);
+            field.SetValue(service, client);
 
             var request = new DonationQRCodeRequest
             {
@@ -191,11 +186,12 @@ namespace Solidariza.Tests
             var campaignServiceMock = new Mock<ICampaignService>();
             var orgInfoServiceMock = new Mock<IOrganizationInfoService>();
 
-            IDonationService service = new DonationService(context, campaignServiceMock.Object, orgInfoServiceMock.Object);
+            DonationService service = new DonationService(campaignServiceMock.Object, orgInfoServiceMock.Object);
 
-            typeof(DonationService)
-                .GetField("_httpClient", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                .SetValue(service, client);
+            var field = typeof(DonationService)
+                .GetField("_httpClient", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Assert.NotNull(field);
+            field.SetValue(service, client);
 
             var result = await service.GetDonationQRCode(new DonationQRCodeRequest());
 

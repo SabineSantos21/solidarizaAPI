@@ -5,14 +5,12 @@ using Solidariza.Interfaces.Services;
 using Solidariza.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
-using System;
 
 namespace Solidariza.Tests
 {
     public class DonationControllerTests
     {
-        private ConnectionDB GetInMemoryDbContext()
+        private static ConnectionDB GetInMemoryDbContext()
         {
             var options = new DbContextOptionsBuilder<ConnectionDB>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -32,7 +30,6 @@ namespace Solidariza.Tests
             // Arrange
             var context = GetInMemoryDbContext();
 
-            // Cria o mock da interface IDonationService
             var donationServiceMock = new Mock<IDonationService>();
 
             var orgInfo = new OrganizationInfo
@@ -56,7 +53,8 @@ namespace Solidariza.Tests
             var okResult = Assert.IsType<OkObjectResult>(result);
             var returnedOrgInfo = Assert.IsType<OrganizationInfo>(okResult.Value);
             Assert.Equal(orgInfo.OrganizationInfoId, returnedOrgInfo.OrganizationInfoId);
-            Assert.Equal(orgInfo.DonationQRCode.Qrcode_base64, returnedOrgInfo?.DonationQRCode?.Qrcode_base64);
+            Assert.NotNull(returnedOrgInfo?.DonationQRCode);
+            Assert.Equal(orgInfo.DonationQRCode.Qrcode_base64, returnedOrgInfo.DonationQRCode.Qrcode_base64);
         }
 
         [Fact]
@@ -100,6 +98,5 @@ namespace Solidariza.Tests
             var problemDetails = Assert.IsType<ProblemDetails>(problemResult.Value);
             Assert.Equal("Erro inesperado", problemDetails.Detail);
         }
-
     }
 }
