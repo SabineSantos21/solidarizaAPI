@@ -86,7 +86,9 @@ namespace Solidariza
                 options.UseMySql(connectiondb, ServerVersion.AutoDetect(connectiondb)));
 
             services.AddCors(options => options.AddPolicy("PolicyCors", builder => builder
-                .AllowAnyOrigin()
+                .WithOrigins(
+                    "https://solidariza-web-ctd5dpbjauchgufp.centralus-01.azurewebsites.net"
+                )
                 .AllowAnyMethod()
                 .AllowAnyHeader()));
 
