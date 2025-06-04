@@ -267,7 +267,7 @@ namespace Solidariza.Tests
             var okResult = Assert.IsType<OkObjectResult>(result.Result);
             var profiles = Assert.IsType<List<Profile>>(okResult.Value);
             Assert.NotEmpty(profiles);
-            Assert.All(profiles, p => Assert.Equal(UserType.Organization, p.User.Type));
+            Assert.All(profiles, p => Assert.Equal(UserType.Organization, p.User?.Type));
             Assert.Single(profiles); // Deve retornar apenas o perfil com UserType.Organization
             Assert.Equal("Org Profile", profiles[0].Name);
         }
