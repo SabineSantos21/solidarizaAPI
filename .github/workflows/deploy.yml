@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - master         # build, testes, sonar, deploy
-      - develop      # build, testes, sonar
-      - 'feature/**' # build, testes, sonar
-      - 'release/**' # build, testes, sonar
+      - develop        # build, testes, sonar
+      - 'feature/**'   # build, testes, sonar
+      - 'release/**'   # build, testes, sonar
 
 jobs:
   sonarcloud-analyze:
@@ -22,7 +22,7 @@ jobs:
       - name: Checkout do código
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Necessário para SonarCloud analisar o histórico do Git
 
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
@@ -52,13 +52,18 @@ jobs:
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin `
             /k:"SabineSantos21_solidarizaAPI" `
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml"
+            /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml" `
+            /d:sonar.scm.provider="git" `
+            /d:sonar.projectVersion="${{ github.sha }}" `
+            /d:sonar.sourceEncoding="UTF-8" `
+            /d:sonar.security.hotspots.enabled="true"
 
       - name: Restore dependencies
         run: dotnet restore
