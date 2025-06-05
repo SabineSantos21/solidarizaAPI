@@ -44,7 +44,7 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.opencover.reportsPaths="coverage.opencover.xml" `
+            /d:sonar.cs.opencover.reportsPaths="coverage/coverage.opencover.xml" `
             /d:sonar.coverage.exclusions="Solidariza.Tests/**" `
             /d:sonar.scm.provider="git" `
             /v:${{ github.sha }} `
@@ -70,24 +70,22 @@ jobs:
             --verbosity detailed `
             /p:CollectCoverage=true `
             /p:CoverletOutputFormat=opencover `
-            /p:CoverletOutput="../coverage.opencover.xml" `
+            /p:CoverletOutput="coverage/" `
             /p:Include="[SolidarizaAPI]*"
-          dir
-          if (!(Test-Path ../coverage.opencover.xml)) {
+
+          if (!(Test-Path "coverage/coverage.opencover.xml")) {
             Write-Error "Erro: coverage.opencover.xml não foi gerado!"
             exit 1
           }
-          Write-Host "Conteúdo de coverage.opencover.xml:"
-          Get-Content ../coverage.opencover.xml
 
-      - name: Verificar cobertura (debug)
+      - name: Mostrar arquivo de cobertura gerado
+        shell: powershell
         run: |
-          dir
-          if (Test-Path coverage.opencover.xml) {
-            echo "coverage.opencover.xml encontrado. Conteúdo:"
-            cat coverage.opencover.xml
+          if (Test-Path "coverage/coverage.opencover.xml") {
+            Write-Host "coverage.opencover.xml encontrado. Conteúdo:"
+            Get-Content coverage/coverage.opencover.xml
           } else {
-            echo "Arquivo coverage.opencover.xml não encontrado na raiz."
+            Write-Error "coverage.opencover.xml não encontrado!"
           }
 
       - name: End SonarCloud analysis
