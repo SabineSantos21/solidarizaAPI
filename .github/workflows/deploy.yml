@@ -65,24 +65,22 @@ jobs:
       - name: Run tests with coverage
         shell: powershell
         run: |
-          dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
-            --no-build `
-            --settings coverlet.runsettings
-          
-          if (!(Test-Path coverage/coverage.opencover.xml)) {
-            Write-Error "Erro: coverage.opencover.xml não foi gerado!"
-            exit 1
-          }
+          dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity normal `
+            /p:CollectCoverage=true `
+            /p:CoverletOutputFormat=opencover `
+            /p:UseSourceLink=true
 
-      - name: Mostrar arquivo de cobertura gerado
+      - name: Mover cobertura para pasta esperada
         shell: powershell
         run: |
-          if (Test-Path coverage/coverage.opencover.xml) {
-            Write-Host "coverage.opencover.xml encontrado. Conteúdo:"
-            Get-Content coverage/coverage.opencover.xml -TotalCount 20
-          } else {
+          $coverageFile = Get-ChildItem -Recurse -Filter "coverage.opencover.xml" | Select-Object -First 1
+          if ($null -eq $coverageFile) {
             Write-Error "coverage.opencover.xml não encontrado!"
+            exit 1
           }
+          New-Item -ItemType Directory -Path "coverage" -Force
+          Copy-Item $coverageFile.FullName -Destination "coverage/coverage.opencover.xml" -Force
+          Write-Host "Arquivo movido para: coverage/coverage.opencover.xml"
 
       - name: End SonarCloud analysis
         env:
@@ -117,6 +115,29 @@ jobs:
 
       - name: Publish (self-contained para Windows 64 bits)
         run: dotnet publish ./SolidarizaAPI/SolidarizaAPI.csproj --configuration Release --output ./publish
+
+      - name: Verifique se DLL base está publicada
+        run: find ./publish -name 'System.Private.CoreLib.dll' || true
+
+      - name: Listar arquivos publicados
+        run: ls -lh ./publish
+
+      - name: Procurar DLLs base (corelib, threading, hostfxr)
+        run: |
+          find ./publish -name 'System.Private.CoreLib.dll'
+          find ./publish -name 'System.Threading.dll'
+          find ./publish -name 'hostfxr.dll'
+          find ./publish -name 'hostpolicy.dll'
+
+      - name: Limpar wwwroot via Kudu API
+        if: github.ref == 'refs/heads/master'
+        env:
+          PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        run: |
+          user=$(echo "$PUBLISH_PROFILE" | grep -oP '(?<=userName=")[^"]+')
+          pass=$(echo "$PUBLISH_PROFILE" | grep -oP '(?<=userPWD=")[^"]+')
+          curl -i -u "$user:$pass" -X DELETE "https://solidarizaapi-cnbqcwduhta9bdbm.centralus-01.azurewebsites.net/api/vfs/site/wwwroot/"
+          sleep 5
 
       - name: Deploy para Azure Web App
         if: github.ref == 'refs/heads/master'
