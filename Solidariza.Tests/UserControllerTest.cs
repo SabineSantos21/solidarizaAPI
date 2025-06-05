@@ -155,7 +155,7 @@ namespace Solidariza.Tests
             Assert.Equal("org@example.com", returnedUser.Email);
             _mockProfileService.Verify(s => s.CreateProfile(It.Is<NewProfile>(p => p.UserId == 3 && p.Name == "Org User")), Times.Once());
             _mockValidateOrganizationService.Verify(s => s.ConsultCNPJ("12345678901234"), Times.Once());
-            _mockOrganizationInfoService.Verify(s => s.CreateOrganizationInfoCPNJValid(It.Is<NewOrganizationInfoCNPJValid>(o => o.UserId == 3 && o.IsOrganizationApproved)), Times.Once());
+            _mockOrganizationInfoService.Verify(s => s.CreateOrganizationInfoCPNJValid(It.Is<NewOrganizationInfoCnpjValid>(o => o.UserId == 3 && o.IsOrganizationApproved)), Times.Once());
         }
 
         [Fact]
@@ -195,7 +195,7 @@ namespace Solidariza.Tests
             Assert.Equal("org@example.com", returnedUser.Email);
             _mockProfileService.Verify(s => s.CreateProfile(It.Is<NewProfile>(p => p.UserId == 3 && p.Name == "Org User")), Times.Once());
             _mockValidateOrganizationService.Verify(s => s.ConsultCNPJ("00000000000000"), Times.Once());
-            _mockOrganizationInfoService.Verify(s => s.CreateOrganizationInfoCPNJValid(It.Is<NewOrganizationInfoCNPJValid>(o => o.UserId == 3 && !o.IsOrganizationApproved && o.DisapprovalReason == "CNPJ inválido")), Times.Once());
+            _mockOrganizationInfoService.Verify(s => s.CreateOrganizationInfoCPNJValid(It.Is<NewOrganizationInfoCnpjValid>(o => o.UserId == 3 && !o.IsOrganizationApproved && o.DisapprovalReason == "CNPJ inválido")), Times.Once());
         }
 
         [Fact]

@@ -84,7 +84,7 @@ namespace Solidariza.Controllers
 
                     ConsultCnpjResponse organizationValid = await _validateOrganizationService.ConsultCNPJ(user.DocumentNumber);
 
-                    NewOrganizationInfoCNPJValid newOrganizationInfo = new NewOrganizationInfoCNPJValid
+                    NewOrganizationInfoCnpjValid newOrganizationInfo = new NewOrganizationInfoCnpjValid
                     {
                         UserId = user.UserId,
                         IsOrganizationApproved = organizationValid.IsValid,

@@ -10,12 +10,14 @@ namespace Solidariza.Services
         private readonly HttpClient _httpClient;
         private readonly ICampaignService _campaignService;
         private readonly IOrganizationInfoService _organizationInfoService;
+        private readonly string? _qrCodeUrl;
 
-        public DonationService(ICampaignService campaignService, IOrganizationInfoService organizationInfoService) 
+        public DonationService(IConfiguration configuration, ICampaignService campaignService, IOrganizationInfoService organizationInfoService) 
         {
             _httpClient = new HttpClient();
             _campaignService = campaignService;
             _organizationInfoService = organizationInfoService;
+            _qrCodeUrl = configuration["Pix:QRCodeUrl"];
         }
 
         public async Task<OrganizationInfo> GetQRCodePixByCampaignId(int campaignId)
@@ -45,7 +47,7 @@ namespace Solidariza.Services
 
         public async Task<string> GetDonationQRCode(DonationQRCodeRequest donationQRCodeRequest)
         {
-            string url = "https://www.gerarpix.com.br/emvqr-static";
+            string? url = _qrCodeUrl;
             string jsonPayload = JsonSerializer.Serialize(donationQRCodeRequest);
 
             try

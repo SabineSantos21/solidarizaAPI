@@ -30,7 +30,7 @@ namespace Solidariza.Services
 
             bool isAtiva = organization.Estabelecimento?.SituacaoCadastral == "Ativa";
 
-            if (isAtiva == false) {
+            if (!isAtiva) {
                     
                 return new ConsultCnpjResponse()
                 {
@@ -53,7 +53,7 @@ namespace Solidariza.Services
             bool isSemFinsLucrativos = organization.NaturezaJuridica != null &&
                                         NaturezasPermitidas.Contains(int.Parse(organization.NaturezaJuridica.Id));
 
-            if (isSemFinsLucrativos == false) {
+            if (!isSemFinsLucrativos) {
                 return new ConsultCnpjResponse()
                 {
                     DisapprovalReason = "Esta organização não é registrada como sem fins lucrativos. Confira as informações e tente novamente.",
