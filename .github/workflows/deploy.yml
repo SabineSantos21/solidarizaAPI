@@ -3,10 +3,10 @@ name: CI/CD .NET Core App para Azure WebApp
 on:
   push:
     branches:
-      - master         # build, testes, sonar, deploy
-      - develop       # build, testes, sonar
-      - 'feature/**'  # build, testes, sonar
-      - 'release/**'  # build, testes, sonar
+      - master
+      - develop
+      - 'feature/**'
+      - 'release/**'
 
 jobs:
   sonarcloud-analyze:
@@ -65,24 +65,29 @@ jobs:
       - name: Run tests with coverage
         shell: powershell
         run: |
-          dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity detailed /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput="coverage.opencover.xml" /p:Include="[SolidarizaAPI]*"
+          dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
+            --no-build `
+            --verbosity detailed `
+            /p:CollectCoverage=true `
+            /p:CoverletOutputFormat=opencover `
+            /p:CoverletOutput="../coverage.opencover.xml" `
+            /p:Include="[SolidarizaAPI]*"
           dir
-          if (!(Test-Path coverage.opencover.xml)) {
+          if (!(Test-Path ../coverage.opencover.xml)) {
             Write-Error "Erro: coverage.opencover.xml não foi gerado!"
             exit 1
           }
           Write-Host "Conteúdo de coverage.opencover.xml:"
-          Get-Content coverage.opencover.xml
+          Get-Content ../coverage.opencover.xml
 
-      - name: Mostrar arquivo de cobertura gerado
-        shell: powershell
+      - name: Verificar cobertura (debug)
         run: |
           dir
           if (Test-Path coverage.opencover.xml) {
-            Write-Host "coverage.opencover.xml encontrado. Conteúdo:"
-            Get-Content coverage.opencover.xml
+            echo "coverage.opencover.xml encontrado. Conteúdo:"
+            cat coverage.opencover.xml
           } else {
-            Write-Error "coverage.opencover.xml não encontrado!"
+            echo "Arquivo coverage.opencover.xml não encontrado na raiz."
           }
 
       - name: End SonarCloud analysis
