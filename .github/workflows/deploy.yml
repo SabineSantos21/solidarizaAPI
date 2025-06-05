@@ -51,7 +51,9 @@ jobs:
             /d:sonar.scm.provider="git" `
             /v:${{ github.sha }} `
             /d:sonar.sourceEncoding="UTF-8" `
-            /d:sonar.security.hotspots.enabled="true"
+            /d:sonar.security.hotspots.enabled="true" `
+            /d:sonar.sources="Solidariza" `
+            /d:sonar.tests="Solidariza.Tests"
 
       - name: Restore dependencies
         run: dotnet restore
