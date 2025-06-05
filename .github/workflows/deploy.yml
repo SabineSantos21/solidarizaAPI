@@ -29,9 +29,6 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Install dotnet-coverage
-        run: dotnet tool install --global dotnet-coverage
-
       - name: Install SonarCloud scanner
         shell: powershell
         run: |
@@ -47,13 +44,16 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml" `
+            /d:sonar.cs.opencover.reportsPaths="coverage.opencover.xml" `
             /d:sonar.scm.provider="git" `
             /v:${{ github.sha }} `
             /d:sonar.sourceEncoding="UTF-8" `
             /d:sonar.security.hotspots.enabled="true" `
-            /d:sonar.sources="Solidariza" `
-            /d:sonar.tests="Solidariza.Tests"
+            /d:sonar.sources="SolidarizaAPI" `
+            /d:sonar.tests="Solidariza.Tests" `
+            /d:sonar.cs.file.suffixes=".cs" `
+            /d:sonar.inclusions="SolidarizaAPI/**/*.cs" `
+            /d:sonar.exclusions="**/obj/**,**/bin/**"
 
       - name: Restore dependencies
         run: dotnet restore
@@ -64,23 +64,23 @@ jobs:
       - name: Run tests with coverage
         shell: powershell
         run: |
-          dotnet-coverage collect --settings coverage.config "dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity detailed" -f xml -o "coverage.xml"
-          if (!(Test-Path coverage.xml)) {
-            Write-Error "Erro: coverage.xml não foi gerado!"
+          dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity detailed /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput="coverage.opencover.xml"
+          if (!(Test-Path coverage.opencover.xml)) {
+            Write-Error "Erro: coverage.opencover.xml não foi gerado!"
             exit 1
           }
-          Write-Host "Conteúdo de coverage.xml:"
-          Get-Content coverage.xml
+          Write-Host "Conteúdo de coverage.opencover.xml:"
+          Get-Content coverage.opencover.xml
 
       - name: Mostrar arquivo de cobertura gerado
         shell: powershell
         run: |
           dir
-          if (Test-Path coverage.xml) {
-            Write-Host "coverage.xml encontrado. Conteúdo:"
-            Get-Content coverage.xml
+          if (Test-Path coverage.opencover.xml) {
+            Write-Host "coverage.opencover.xml encontrado. Conteúdo:"
+            Get-Content coverage.opencover.xml
           } else {
-            Write-Error "coverage.xml não encontrado!"
+            Write-Error "coverage.opencover.xml não encontrado!"
           }
 
       - name: End SonarCloud analysis
@@ -109,13 +109,13 @@ jobs:
         run: dotnet restore --runtime win-x64
 
       - name: Build (win-x64)
-        run: dotnet build ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --no-restore
+        run: dotnet build ./SolidarizaAPI/SolidarizaAPI.csproj --configuration Release --runtime win-x64 --no-restore
 
       - name: Testes
-        run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --no-build --verbosity normal
+        run: dotnet test ./SolidarizaAPI/SolidarizaAPI.csproj --configuration Release --runtime win-x64 --no-build --verbosity normal
 
       - name: Publish (self-contained para Windows 64 bits)
-        run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --output ./publish
+        run: dotnet publish ./SolidarizaAPI/SolidarizaAPI.csproj --configuration Release --output ./publish
 
       - name: Verifique se DLL base está publicada
         run: find ./publish -name 'System.Private.CoreLib.dll' || true
