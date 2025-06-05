@@ -7,11 +7,24 @@ using Solidariza.Models;
 using Solidariza.Services;
 using Solidariza.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Solidariza.Tests
 {
     public class DonationServiceTests
     {
+        private static IConfiguration GetFakeConfiguration()
+        {
+            var inMemorySettings = new Dictionary<string, string>
+            {
+                { "Pix:QRCodeUrl", "https://www.gerarpix.com.br/emvqr-static" }
+            };
+
+            return new ConfigurationBuilder()
+                .AddInMemoryCollection(inMemorySettings)
+                .Build();
+        }
+
         private static ConnectionDB GetInMemoryDbContext()
         {
             var options = new DbContextOptionsBuilder<ConnectionDB>()
@@ -44,7 +57,7 @@ namespace Solidariza.Tests
         [Fact]
         public async Task GetQRCodePixByCampaignId_ReturnsQRCode()
         {
-            // Arrange
+            var configuration = GetFakeConfiguration();
             var context = GetInMemoryDbContext();
 
             var campaign = new Campaign { CampaignId = 1, UserId = 1 };
@@ -78,18 +91,15 @@ namespace Solidariza.Tests
 
             var mockedHttpClient = GetMockHttpClient(JsonSerializer.Serialize(expectedQRCode));
 
-            DonationService service = new DonationService(campaignServiceMock.Object, orgInfoServiceMock.Object);
+            DonationService service = new DonationService(configuration, campaignServiceMock.Object, orgInfoServiceMock.Object);
 
-            // Injeta HttpClient mockado via reflexão
             var field = typeof(DonationService)
                 .GetField("_httpClient", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             Assert.NotNull(field);
             field.SetValue(service, mockedHttpClient);
 
-            // Act
             var result = await service.GetQRCodePixByCampaignId(1);
 
-            // Assert
             Assert.NotNull(result.DonationQRCode);
             Assert.Equal(expectedQRCode.Qrcode_base64, result.DonationQRCode.Qrcode_base64);
         }
@@ -97,6 +107,7 @@ namespace Solidariza.Tests
         [Fact]
         public async Task GetQRCodePixByCampaignId_CampaignNotFound_ThrowsException()
         {
+            var configuration = GetFakeConfiguration();
             var context = GetInMemoryDbContext();
 
             var campaignServiceMock = new Mock<ICampaignService>();
@@ -105,7 +116,7 @@ namespace Solidariza.Tests
 
             var orgInfoServiceMock = new Mock<IOrganizationInfoService>();
 
-            DonationService service = new DonationService(campaignServiceMock.Object, orgInfoServiceMock.Object);
+            DonationService service = new DonationService(configuration, campaignServiceMock.Object, orgInfoServiceMock.Object);
 
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 service.GetQRCodePixByCampaignId(99));
@@ -116,6 +127,7 @@ namespace Solidariza.Tests
         [Fact]
         public async Task GetQRCodePixByCampaignId_OrgInfoNotFound_ThrowsException()
         {
+            var configuration = GetFakeConfiguration();
             var context = GetInMemoryDbContext();
 
             var campaign = new Campaign { CampaignId = 1, UserId = 1 };
@@ -127,7 +139,7 @@ namespace Solidariza.Tests
             orgInfoServiceMock.Setup(s => s.GetOrganizationInfoByUserId(1))
                 .ReturnsAsync((OrganizationInfo?)null);
 
-            DonationService service = new DonationService(campaignServiceMock.Object, orgInfoServiceMock.Object);
+            DonationService service = new DonationService(configuration, campaignServiceMock.Object, orgInfoServiceMock.Object);
 
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 service.GetQRCodePixByCampaignId(1));
@@ -138,6 +150,7 @@ namespace Solidariza.Tests
         [Fact]
         public async Task GetDonationQRCode_ReturnsExpectedJson()
         {
+            var configuration = GetFakeConfiguration();
             var expected = new DonationQRCodeResponse { Qrcode_base64 = "123abc", Name = "copypaste" };
             var client = GetMockHttpClient(JsonSerializer.Serialize(expected));
             var context = GetInMemoryDbContext();
@@ -145,7 +158,7 @@ namespace Solidariza.Tests
             var campaignServiceMock = new Mock<ICampaignService>();
             var orgInfoServiceMock = new Mock<IOrganizationInfoService>();
 
-            DonationService service = new DonationService(campaignServiceMock.Object, orgInfoServiceMock.Object);
+            DonationService service = new DonationService(configuration, campaignServiceMock.Object, orgInfoServiceMock.Object);
 
             var field = typeof(DonationService)
                 .GetField("_httpClient", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -170,6 +183,7 @@ namespace Solidariza.Tests
         [Fact]
         public async Task GetDonationQRCode_OnHttpFailure_ReturnsErrorMessage()
         {
+            var configuration = GetFakeConfiguration();
             var handlerMock = new Mock<HttpMessageHandler>();
             handlerMock
                .Protected()
@@ -186,7 +200,7 @@ namespace Solidariza.Tests
             var campaignServiceMock = new Mock<ICampaignService>();
             var orgInfoServiceMock = new Mock<IOrganizationInfoService>();
 
-            DonationService service = new DonationService(campaignServiceMock.Object, orgInfoServiceMock.Object);
+            DonationService service = new DonationService(configuration, campaignServiceMock.Object, orgInfoServiceMock.Object);
 
             var field = typeof(DonationService)
                 .GetField("_httpClient", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
