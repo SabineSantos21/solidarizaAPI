@@ -44,7 +44,7 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.opencover.reportsPaths="coverage/**/coverage.opencover.xml" `
+            /d:sonar.cs.opencover.reportsPaths="coverage/coverage.opencover.xml" `
             /d:sonar.coverage.exclusions="Solidariza.Tests/**" `
             /d:sonar.scm.provider="git" `
             /v:${{ github.sha }} `
@@ -67,18 +67,21 @@ jobs:
         run: |
           dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
             --no-build `
-            --collect:"XPlat Code Coverage" `
-            --settings coverlet.runsettings `
-            --results-directory coverage `
-            --verbosity normal
-
-          $coveragePath = Get-ChildItem -Recurse -Filter "coverage.opencover.xml"
-          if ($coveragePath.Count -eq 0) {
-            Write-Error "Erro: coverage.opencover.xml não encontrado!"
+            --settings coverlet.runsettings
+          
+          if (!(Test-Path coverage/coverage.opencover.xml)) {
+            Write-Error "Erro: coverage.opencover.xml não foi gerado!"
             exit 1
+          }
+
+      - name: Mostrar arquivo de cobertura gerado
+        shell: powershell
+        run: |
+          if (Test-Path coverage/coverage.opencover.xml) {
+            Write-Host "coverage.opencover.xml encontrado. Conteúdo:"
+            Get-Content coverage/coverage.opencover.xml -TotalCount 20
           } else {
-            Write-Host "coverage.opencover.xml encontrado em:"
-            $coveragePath | ForEach-Object { Write-Host $_.FullName }
+            Write-Error "coverage.opencover.xml não encontrado!"
           }
 
       - name: End SonarCloud analysis
@@ -114,16 +117,6 @@ jobs:
 
       - name: Publish (self-contained para Windows 64 bits)
         run: dotnet publish ./SolidarizaAPI/SolidarizaAPI.csproj --configuration Release --output ./publish
-
-      - name: Limpar wwwroot via Kudu API
-        if: github.ref == 'refs/heads/master'
-        env:
-          PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        run: |
-          user=$(echo "$PUBLISH_PROFILE" | grep -oP '(?<=userName=")[^"]+')
-          pass=$(echo "$PUBLISH_PROFILE" | grep -oP '(?<=userPWD=")[^"]+')
-          curl -i -u "$user:$pass" -X DELETE "https://solidarizaapi-cnbqcwduhta9bdbm.centralus-01.azurewebsites.net/api/vfs/site/wwwroot/"
-          sleep 5
 
       - name: Deploy para Azure Web App
         if: github.ref == 'refs/heads/master'
