@@ -1,14 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
-<RunSettings>
-  <DataCollectionRunSettings>
-    <DataCollectors>
-      <DataCollector friendlyName="XPlat code coverage">
-        <Configuration>
-          <Format>opencover</Format>
-          <OutputDirectory>coverage</OutputDirectory>
-          <Include>[SolidarizaAPI]*</Include>
-        </Configuration>
-      </DataCollector>
-    </DataCollectors>
-  </DataCollectionRunSettings>
-</RunSettings>
+Write-Host "Procurando coverage.cobertura.xml na pasta atual e subpastas..."
+$coverageFile = Get-ChildItem -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
+if ($null -eq $coverageFile) {
+  Write-Host "Arquivo coverage.cobertura.xml não encontrado. Listando todos arquivos XML para debug:"
+  Get-ChildItem -Recurse -Filter "*.xml" | ForEach-Object { Write-Host $_.FullName }
+  Exit 1
+}
+else {
+  Write-Host "Arquivo encontrado em: $($coverageFile.FullName)"
+  New-Item -ItemType Directory -Path "coverage" -Force
+  Copy-Item $coverageFile.FullName -Destination "coverage/coverage.cobertura.xml" -Force
+  Write-Host "Arquivo movido para: coverage/coverage.cobertura.xml"
+}
