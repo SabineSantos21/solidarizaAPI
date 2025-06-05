@@ -60,18 +60,26 @@ jobs:
         run: dotnet build --no-restore --no-incremental
 
       - name: Run tests with coverage
+        shell: powershell
         run: |
           dotnet-coverage collect --settings coverage.config "dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity detailed" -f xml -o "coverage.xml"
-          if [ ! -f coverage.xml ]; then
-            echo "Erro: coverage.xml não foi gerado!"
+          if (!(Test-Path coverage.xml)) {
+            Write-Error "Erro: coverage.xml não foi gerado!"
             exit 1
-          fi
-          cat coverage.xml
+          }
+          Write-Host "Conteúdo de coverage.xml:"
+          Get-Content coverage.xml
 
       - name: Mostrar arquivo de cobertura gerado
+        shell: powershell
         run: |
           dir
-          if exist coverage.xml (type coverage.xml) else (echo "coverage.xml não encontrado!")
+          if (Test-Path coverage.xml) {
+            Write-Host "coverage.xml encontrado. Conteúdo:"
+            Get-Content coverage.xml
+          } else {
+            Write-Error "coverage.xml não encontrado!"
+          }
 
       - name: End SonarCloud analysis
         env:
