@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - master         # build, testes, sonar, deploy
-      - develop      # build, testes, sonar
-      - 'feature/**' # build, testes, sonar
-      - 'release/**' # build, testes, sonar
+      - develop       # build, testes, sonar
+      - 'feature/**'  # build, testes, sonar
+      - 'release/**'  # build, testes, sonar
 
 jobs:
   sonarcloud-analyze:
@@ -24,30 +24,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v4
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
         with:
-          path: ~\sonar\cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
+          dotnet-version: '8.0.x'
 
-      - name: Cache SonarCloud scanner
-        id: cache-sonar-scanner
-        uses: actions/cache@v4
-        with:
-          path: .\.sonar\scanner
-          key: ${{ runner.os }}-sonar-scanner
-          restore-keys: ${{ runner.os }}-sonar-scanner
+      - name: Install dotnet-coverage
+        run: dotnet tool install --global dotnet-coverage
 
       - name: Install SonarCloud scanner
-        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
         shell: powershell
         run: |
           New-Item -Path .\.sonar\scanner -ItemType Directory -Force
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
-
-      - name: Install dotnet-coverage
-        run: dotnet tool install --global dotnet-coverage
 
       - name: Begin SonarCloud analysis
         env:
@@ -72,10 +61,17 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          dotnet-coverage collect "dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity normal" -f xml -o "coverage.xml"
+          dotnet-coverage collect --settings coverage.config "dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity detailed" -f xml -o "coverage.xml"
+          if [ ! -f coverage.xml ]; then
+            echo "Erro: coverage.xml não foi gerado!"
+            exit 1
+          fi
+          cat coverage.xml
 
       - name: Mostrar arquivo de cobertura gerado
-        run: Get-ChildItem -Path . -Filter "coverage.xml"
+        run: |
+          dir
+          if exist coverage.xml (type coverage.xml) else (echo "coverage.xml não encontrado!")
 
       - name: End SonarCloud analysis
         env:
