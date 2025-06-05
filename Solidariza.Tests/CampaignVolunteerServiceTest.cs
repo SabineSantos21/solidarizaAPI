@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Solidariza.Tests
+namespace Solidariza.Tests.Services
 {
     public class CampaignVolunteerServiceTests
     {

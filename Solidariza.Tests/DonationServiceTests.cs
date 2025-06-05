@@ -9,13 +9,13 @@ using Solidariza.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
-namespace Solidariza.Tests
+namespace Solidariza.Tests.Services
 {
     public class DonationServiceTests
     {
         private static IConfiguration GetFakeConfiguration()
         {
-            var inMemorySettings = new Dictionary<string, string>
+            var inMemorySettings = new Dictionary<string, string?>
             {
                 { "Pix:QRCodeUrl", "https://www.gerarpix.com.br/emvqr-static" }
             };

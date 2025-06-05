@@ -19,7 +19,7 @@ namespace Solidariza.Services
             var organizationJson = GetOrganizationByAPI(cnpj);
             var organization = JsonSerializer.Deserialize<ApicnpjConsultResponse>(await organizationJson);
 
-            if (organization == null)
+            if (organization?.CnpjRaiz == null)
             {
                 return new ConsultCnpjResponse()
                 {
@@ -77,11 +77,20 @@ namespace Solidariza.Services
                 var request = new HttpRequestMessage(HttpMethod.Get, url);
 
                 HttpResponseMessage response = await _httpClient.SendAsync(request);
-                response.EnsureSuccessStatusCode();
 
-                string responseContent = await response.Content.ReadAsStringAsync();
+                string responseContent = string.Empty;
 
-                return responseContent;
+                if (response.IsSuccessStatusCode)
+                {
+                    responseContent = await response.Content.ReadAsStringAsync();
+                }
+                else
+                {
+                    responseContent = $"Erro:";
+                }
+
+
+                    return responseContent;
             }
             catch (Exception ex)
             {
