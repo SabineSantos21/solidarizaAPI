@@ -44,7 +44,7 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.opencover.reportsPaths="coverage/coverage.opencover.xml" `
+            /d:sonar.cs.opencover.reportsPaths="coverage/**/coverage.opencover.xml" `
             /d:sonar.coverage.exclusions="Solidariza.Tests/**" `
             /d:sonar.scm.provider="git" `
             /v:${{ github.sha }} `
@@ -67,25 +67,18 @@ jobs:
         run: |
           dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
             --no-build `
-            --verbosity detailed `
-            /p:CollectCoverage=true `
-            /p:CoverletOutputFormat=opencover `
-            /p:CoverletOutput="coverage/" `
-            /p:Include="[SolidarizaAPI]*"
+            --collect:"XPlat Code Coverage" `
+            --settings coverlet.runsettings `
+            --results-directory coverage `
+            --verbosity normal
 
-          if (!(Test-Path "coverage/coverage.opencover.xml")) {
-            Write-Error "Erro: coverage.opencover.xml não foi gerado!"
+          $coveragePath = Get-ChildItem -Recurse -Filter "coverage.opencover.xml"
+          if ($coveragePath.Count -eq 0) {
+            Write-Error "Erro: coverage.opencover.xml não encontrado!"
             exit 1
-          }
-
-      - name: Mostrar arquivo de cobertura gerado
-        shell: powershell
-        run: |
-          if (Test-Path "coverage/coverage.opencover.xml") {
-            Write-Host "coverage.opencover.xml encontrado. Conteúdo:"
-            Get-Content coverage/coverage.opencover.xml
           } else {
-            Write-Error "coverage.opencover.xml não encontrado!"
+            Write-Host "coverage.opencover.xml encontrado em:"
+            $coveragePath | ForEach-Object { Write-Host $_.FullName }
           }
 
       - name: End SonarCloud analysis
@@ -121,19 +114,6 @@ jobs:
 
       - name: Publish (self-contained para Windows 64 bits)
         run: dotnet publish ./SolidarizaAPI/SolidarizaAPI.csproj --configuration Release --output ./publish
-
-      - name: Verifique se DLL base está publicada
-        run: find ./publish -name 'System.Private.CoreLib.dll' || true
-
-      - name: Listar arquivos publicados
-        run: ls -lh ./publish
-
-      - name: Procurar DLLs base (corelib, threading, hostfxr)
-        run: |
-          find ./publish -name 'System.Private.CoreLib.dll'
-          find ./publish -name 'System.Threading.dll'
-          find ./publish -name 'hostfxr.dll'
-          find ./publish -name 'hostpolicy.dll'
 
       - name: Limpar wwwroot via Kudu API
         if: github.ref == 'refs/heads/master'
