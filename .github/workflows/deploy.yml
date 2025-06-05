@@ -45,6 +45,7 @@ jobs:
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
             /d:sonar.cs.opencover.reportsPaths="coverage.opencover.xml" `
+            /d:sonar.coverage.exclusions="Solidariza.Tests/**" `
             /d:sonar.scm.provider="git" `
             /v:${{ github.sha }} `
             /d:sonar.sourceEncoding="UTF-8" `
@@ -64,7 +65,8 @@ jobs:
       - name: Run tests with coverage
         shell: powershell
         run: |
-          dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity detailed /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput="coverage.opencover.xml"
+          dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity detailed /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput="coverage.opencover.xml" /p:Include="[SolidarizaAPI]*"
+          dir
           if (!(Test-Path coverage.opencover.xml)) {
             Write-Error "Erro: coverage.opencover.xml não foi gerado!"
             exit 1
@@ -112,7 +114,7 @@ jobs:
         run: dotnet build ./SolidarizaAPI/SolidarizaAPI.csproj --configuration Release --runtime win-x64 --no-restore
 
       - name: Testes
-        run: dotnet test ./SolidarizaAPI/SolidarizaAPI.csproj --configuration Release --runtime win-x64 --no-build --verbosity normal
+        run: dotnet test ./Solidariza.Tests/Solidariza.Tests.csproj --configuration Release --runtime win-x64 --no-build --verbosity normal
 
       - name: Publish (self-contained para Windows 64 bits)
         run: dotnet publish ./SolidarizaAPI/SolidarizaAPI.csproj --configuration Release --output ./publish
