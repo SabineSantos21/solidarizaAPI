@@ -32,6 +32,12 @@ jobs:
       - name: Install SonarCloud scanner
         run: dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
 
+      - name: Install dotnet-coverage tool
+        run: dotnet tool install --global dotnet-coverage
+
+      - name: Add dotnet tools to PATH
+        run: echo "$env:USERPROFILE\.dotnet\tools" | Out-File -Append -FilePath $env:GITHUB_PATH
+
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -41,11 +47,9 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.cobertura.reportsPaths="coverage/coverage.cobertura.xml" `
+            /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml" `
             /d:sonar.coverage.exclusions="Solidariza.Tests/**" `
-            /d:sonar.scm.provider="git" `
             /v:${{ github.sha }} `
-            /d:sonar.sourceEncoding="UTF-8" `
             /d:sonar.security.hotspots.enabled="true" `
             /d:sonar.sources="SolidarizaAPI" `
             /d:sonar.tests="Solidariza.Tests" `
@@ -59,22 +63,9 @@ jobs:
       - name: Build solution
         run: dotnet build --no-restore --no-incremental
 
-      - name: Run tests with coverage (Cobertura)
+      - name: Run tests with coverage (dotnet-coverage)
         run: |
-          dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory coverage
-
-      - name: Copiar coverage.cobertura.xml para o local esperado
-        run: |
-          $file = Get-ChildItem -Path coverage -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
-          if ($null -eq $file) {
-            Write-Host "Arquivo coverage.cobertura.xml não encontrado!"
-            Get-ChildItem -Recurse -Filter "*.xml" | ForEach-Object { Write-Host $_.FullName }
-            exit 1
-          } else {
-            New-Item -ItemType Directory -Path "coverage" -Force
-            Copy-Item $file.FullName -Destination "coverage/coverage.cobertura.xml" -Force
-            Write-Host "Arquivo movido para: coverage/coverage.cobertura.xml"
-          }
+          dotnet-coverage collect 'dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity normal' -f xml -o coverage.xml
 
       - name: End SonarCloud analysis
         env:
