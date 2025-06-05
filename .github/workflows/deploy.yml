@@ -30,13 +30,10 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Install SonarCloud scanner
-        run: dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
-
-      - name: Install dotnet-coverage tool
-        run: dotnet tool install --global dotnet-coverage
-
-      - name: Add dotnet tools to PATH
-        run: echo "$env:USERPROFILE\.dotnet\tools" | Out-File -Append -FilePath $env:GITHUB_PATH
+        shell: powershell
+        run: |
+          New-Item -Path .\.sonar\scanner -ItemType Directory -Force
+          dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
 
       - name: Begin SonarCloud analysis
         env:
@@ -47,9 +44,11 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml" `
+            /d:sonar.cs.opencover.reportsPaths="coverage/**/coverage.opencover.xml" `
             /d:sonar.coverage.exclusions="Solidariza.Tests/**" `
+            /d:sonar.scm.provider="git" `
             /v:${{ github.sha }} `
+            /d:sonar.sourceEncoding="UTF-8" `
             /d:sonar.security.hotspots.enabled="true" `
             /d:sonar.sources="SolidarizaAPI" `
             /d:sonar.tests="Solidariza.Tests" `
@@ -63,14 +62,30 @@ jobs:
       - name: Build solution
         run: dotnet build --no-restore --no-incremental
 
-      - name: Run tests with coverage (dotnet-coverage)
+      - name: Run tests with coverage
+        shell: powershell
         run: |
-          dotnet-coverage collect 'dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity normal' -f xml -o coverage.xml
+          dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
+            --no-build `
+            --collect:"XPlat Code Coverage" `
+            --settings coverlet.runsettings `
+            --results-directory coverage `
+            --verbosity normal
+
+          $coveragePath = Get-ChildItem -Recurse -Filter "coverage.opencover.xml"
+          if ($coveragePath.Count -eq 0) {
+            Write-Error "Erro: coverage.opencover.xml não encontrado!"
+            exit 1
+          } else {
+            Write-Host "coverage.opencover.xml encontrado em:"
+            $coveragePath | ForEach-Object { Write-Host $_.FullName }
+          }
 
       - name: End SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        run: |
+          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
   build-and-deploy:
     needs: [sonarcloud-analyze]
