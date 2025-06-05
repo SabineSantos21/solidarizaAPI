@@ -35,6 +35,34 @@ jobs:
           New-Item -Path .\.sonar\scanner -ItemType Directory -Force
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
 
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --no-incremental
+
+      - name: Run tests with coverage (XPlat Code Coverage)
+        shell: powershell
+        run: |
+          dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity normal --collect:"XPlat Code Coverage"
+
+      - name: Locate and move coverage file for Sonar
+        shell: powershell
+        run: |
+          Write-Host "Procurando coverage.opencover.xml na pasta atual e subpastas..."
+          $coverageFile = Get-ChildItem -Recurse -Filter "coverage.opencover.xml" | Select-Object -First 1
+          if ($null -eq $coverageFile) {
+            Write-Host "Arquivo coverage.opencover.xml não encontrado. Listando todos arquivos XML para debug:"
+            Get-ChildItem -Recurse -Filter "*.xml" | ForEach-Object { Write-Host $_.FullName }
+            Exit 1
+          }
+          else {
+            Write-Host "Arquivo encontrado em: $($coverageFile.FullName)"
+            New-Item -ItemType Directory -Path "coverage" -Force
+            Copy-Item $coverageFile.FullName -Destination "coverage/coverage.opencover.xml" -Force
+            Write-Host "Arquivo movido para: coverage/coverage.opencover.xml"
+          }
+
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -55,32 +83,6 @@ jobs:
             /d:sonar.cs.file.suffixes=".cs" `
             /d:sonar.inclusions="SolidarizaAPI/**/*.cs" `
             /d:sonar.exclusions="**/obj/**,**/bin/**"
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build solution
-        run: dotnet build --no-restore --no-incremental
-
-      - name: Run tests with coverage
-        shell: powershell
-        run: |
-          dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity normal `
-            /p:CollectCoverage=true `
-            /p:CoverletOutputFormat=opencover `
-            /p:UseSourceLink=true
-
-      - name: Mover cobertura para pasta esperada
-        shell: powershell
-        run: |
-          $coverageFile = Get-ChildItem -Recurse -Filter "coverage.opencover.xml" | Select-Object -First 1
-          if ($null -eq $coverageFile) {
-            Write-Error "coverage.opencover.xml não encontrado!"
-            exit 1
-          }
-          New-Item -ItemType Directory -Path "coverage" -Force
-          Copy-Item $coverageFile.FullName -Destination "coverage/coverage.opencover.xml" -Force
-          Write-Host "Arquivo movido para: coverage/coverage.opencover.xml"
 
       - name: End SonarCloud analysis
         env:
@@ -115,19 +117,6 @@ jobs:
 
       - name: Publish (self-contained para Windows 64 bits)
         run: dotnet publish ./SolidarizaAPI/SolidarizaAPI.csproj --configuration Release --output ./publish
-
-      - name: Verifique se DLL base está publicada
-        run: find ./publish -name 'System.Private.CoreLib.dll' || true
-
-      - name: Listar arquivos publicados
-        run: ls -lh ./publish
-
-      - name: Procurar DLLs base (corelib, threading, hostfxr)
-        run: |
-          find ./publish -name 'System.Private.CoreLib.dll'
-          find ./publish -name 'System.Threading.dll'
-          find ./publish -name 'hostfxr.dll'
-          find ./publish -name 'hostpolicy.dll'
 
       - name: Limpar wwwroot via Kudu API
         if: github.ref == 'refs/heads/master'
