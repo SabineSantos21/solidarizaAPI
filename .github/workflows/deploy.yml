@@ -3,10 +3,10 @@ name: CI/CD .NET Core App para Azure WebApp
 on:
   push:
     branches:
-      - master         # build, testes, sonar, deploy
-      - develop        # build, testes, sonar
-      - 'feature/**'   # build, testes, sonar
-      - 'release/**'   # build, testes, sonar
+      - master         
+      - develop        
+      - 'feature/**'   
+      - 'release/**'   
 
 jobs:
   sonarcloud-analyze:
@@ -46,9 +46,6 @@ jobs:
           New-Item -Path .\.sonar\scanner -ItemType Directory -Force
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
 
-      - name: Install dotnet-coverage
-        run: dotnet tool install --global dotnet-coverage
-
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -58,29 +55,36 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.opencover.reportsPaths="coverage.cobertura.xml"
-
+            /d:sonar.cs.opencover.reportsPaths="coverage-report/coverage.cobertura.xml"
+      
       - name: Restore dependencies
         run: dotnet restore
 
       - name: Build solution
         run: dotnet build --no-restore --no-incremental
 
-      - name: Run tests with coverage (Cobertura) no solution
+      - name: Run tests with coverage
+        run: dotnet test Solidariza.sln --no-build --verbosity normal --collect:"XPlat Code Coverage"
+
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Convert coverage to cobertura.xml
         run: |
-          dotnet-coverage collect "dotnet test Solidariza.sln --no-build --verbosity normal" -f cobertura -o "coverage.cobertura.xml"
+          reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:Cobertura
 
-      - name: Mostrar arquivo de cobertura gerado
-        run: Get-ChildItem -Path . -Filter "coverage.cobertura.xml"
+      - name: Show generated cobertura file(s)
+        run: Get-ChildItem -Recurse -Filter "coverage.cobertura.xml"
 
-      - name: Conteúdo do arquivo de cobertura (primeiras 30 linhas)
-        run: Get-Content ./coverage.cobertura.xml -First 30
+      - name: Show first 30 lines of cobertura
+        run: Get-Content coverage-report/coverage.cobertura.xml -First 30
 
       - name: End SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
 
   build-and-deploy:
     needs: [sonarcloud-analyze]
