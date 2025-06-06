@@ -11,12 +11,7 @@ on:
 jobs:
   sonarcloud-analyze:
     runs-on: windows-latest
-
-    steps:
-      jobs:
-  sonarcloud-analyze:
-    runs-on: windows-latest
-
+    
     steps:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
