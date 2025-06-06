@@ -1,131 +1,77 @@
-name: CI/CD .NET Core App para Azure WebApp
+name: CI/CD .NET Core App com cobertura no SonarCloud e Deploy Azure
 
 on:
   push:
     branches:
-      - master         # build, testes, sonar, deploy
-      - develop      # build, testes, sonar
-      - 'feature/**' # build, testes, sonar
-      - 'release/**' # build, testes, sonar
+      - master         # build, test, coverage, sonar, deploy
+      - develop        # build, test, coverage, sonar
+      - 'feature/**'   # build, test, coverage, sonar
+      - 'release/**'   # build, test, coverage, sonar
 
 jobs:
-  sonarcloud-analyze:
+  build-test-sonar:
     runs-on: windows-latest
 
     steps:
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          distribution: 'zulu'
-
       - name: Checkout do código
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v4
-        with:
-          path: ~\sonar\cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
-      - name: Cache SonarCloud scanner
-        id: cache-sonar-scanner
-        uses: actions/cache@v4
-        with:
-          path: .\.sonar\scanner
-          key: ${{ runner.os }}-sonar-scanner
-          restore-keys: ${{ runner.os }}-sonar-scanner
-
-      - name: Install SonarCloud scanner
-        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-        shell: powershell
-        run: |
-          New-Item -Path .\.sonar\scanner -ItemType Directory -Force
-          dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
-
-      - name: Install dotnet-coverage
-        run: dotnet tool install --global dotnet-coverage
-
-      - name: Begin SonarCloud analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin `
-            /k:"SabineSantos21_solidarizaAPI" `
-            /o:"sabinesantos21" `
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
-            /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml" `
-            /d:sonar.scm.provider="git" `
-            /v:${{ github.sha }} `
-            /d:sonar.sourceEncoding="UTF-8" `
-            /d:sonar.security.hotspots.enabled="true"
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build solution
-        run: dotnet build --no-restore --no-incremental
-
-      - name: Run tests with coverage
-        run: |
-          dotnet-coverage collect "dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity normal" -f xml -o "coverage.xml"
-
-      - name: Mostrar arquivo de cobertura gerado
-        run: Get-ChildItem -Path . -Filter "coverage.xml"
-
-      - name: End SonarCloud analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-
-  build-and-deploy:
-    needs: [sonarcloud-analyze]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
-
-      - name: Setup .NET Core
+      - name: Instalar .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Clean build outputs
-        run: dotnet clean --runtime win-x64
+      - name: Instalar SonarCloud scanner
+        run: dotnet tool install --global dotnet-sonarscanner
 
-      - name: Restore dependências
-        run: dotnet restore --runtime win-x64
+      - name: Instalar dotnet-coverage
+        run: dotnet tool install --global dotnet-coverage
 
-      - name: Build (win-x64)
-        run: dotnet build ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --no-restore
+      - name: Begin SonarCloud
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          dotnet sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml" /d:sonar.host.url="https://sonarcloud.io"
 
-      - name: Testes
-        run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --no-build --verbosity normal
+      - name: Build solution
+        run: dotnet build --no-incremental
 
-      - name: Publish (self-contained para Windows 64 bits)
+      - name: Testes com coverage
+        run: dotnet-coverage collect "dotnet test --no-build" -f xml -o "coverage.xml"
+
+      - name: End SonarCloud
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
+      - name: Publicar artefatos
         run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --output ./publish
-
-      - name: Verifique se DLL base está publicada
-        run: find ./publish -name 'System.Private.CoreLib.dll' || true
 
       - name: Listar arquivos publicados
         run: ls -lh ./publish
 
-      - name: Procurar DLLs base (corelib, threading, hostfxr)
-        run: |
-          find ./publish -name 'System.Private.CoreLib.dll'
-          find ./publish -name 'System.Threading.dll'
-          find ./publish -name 'hostfxr.dll'
-          find ./publish -name 'hostpolicy.dll'
+      - name: Upload artifact
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish
+          path: ./publish
+
+  deploy:
+    needs: build-test-sonar
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Baixar artefatos publicados do job anterior
+        uses: actions/download-artifact@v4
+        with:
+          name: publish
+          path: ./publish
 
       - name: Limpar wwwroot via Kudu API
-        if: github.ref == 'refs/heads/master'
         env:
           PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         run: |
@@ -135,7 +81,6 @@ jobs:
           sleep 5
 
       - name: Deploy para Azure Web App
-        if: github.ref == 'refs/heads/master'
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'SolidarizaAPI'
