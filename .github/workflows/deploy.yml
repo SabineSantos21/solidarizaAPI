@@ -46,7 +46,7 @@ jobs:
           New-Item -Path .\.sonar\scanner -ItemType Directory -Force
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
 
-      - name: Begin SonarCloud analysis
+      - name: Begin SonarCloud analysis (verbose)
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
@@ -55,7 +55,8 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.cobertura.reportsPaths="coverage-report/coverage.cobertura.xml"
+            /d:sonar.cs.cobertura.reportsPaths="coverage-report/coverage.cobertura.xml" `
+            /d:sonar.verbose=true
 
       - name: Restore dependencies
         run: dotnet restore
@@ -92,6 +93,12 @@ jobs:
         shell: pwsh
         run: |
           (Get-Content coverage-report/coverage.cobertura.xml) -replace '<source>.*</source>', '<source>.</source>' | Set-Content coverage-report/coverage.cobertura.xml
+
+      - name: Debug arquivos fonte reais
+        shell: pwsh
+        run: |
+          Write-Host "Arquivos C# sob . (runner):"
+          Get-ChildItem -Path . -Recurse -Include "*.cs" | ForEach-Object { $_.FullName }
 
       - name: Debug consolidated coverage
         shell: pwsh
