@@ -55,7 +55,7 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.opencover.reportsPaths="coverage-report/Cobertura.xml"
+            /d:sonar.cs.opencover.reportsPaths="coverage-report/coverage.cobertura.xml"
 
       - name: Restore dependencies
         run: dotnet restore
@@ -67,24 +67,34 @@ jobs:
         run: dotnet test Solidariza.sln --no-build --verbosity normal --collect:"XPlat Code Coverage"
 
       - name: Localizar arquivos de cobertura
+        shell: pwsh
         run: |
-          echo "Arquivos encontrados:"
-          dir /s/b coverage.cobertura.xml || echo "Arquivo de cobertura não encontrado em subdiretórios."
-          dir /s/b *.xml
+          Write-Host "Procurando coverage.cobertura.xml no projeto..."
+          $files = Get-ChildItem -Path . -Recurse -Filter "coverage.cobertura.xml"
+          if ($files) {
+            $files | Select-Object -ExpandProperty FullName
+          } else {
+            Write-Warning "Nenhum arquivo de cobertura encontrado!"
+          }
 
       - name: Instalar ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
-      - name: Consolidar cobertura em um único arquivo
+      - name: Consolidar cobertura em diretório central
         shell: pwsh
         run: |
-          reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:coverage-report -reporttypes:Cobertura -reportfilename:Cobertura.xml
-          if (-not (Test-Path "coverage-report/Cobertura.xml")) { Write-Error "Cobertura.xml não localizado após consolidar cobertura." }
+          $coverage = Get-ChildItem -Path . -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
+          if ($null -eq $coverage) { Write-Error "Nenhum coverage.cobertura.xml encontrado." }
+          New-Item -ItemType Directory -Path coverage-report -Force | Out-Null
+          Copy-Item $coverage.FullName coverage-report/coverage.cobertura.xml -Force
 
       - name: Debug consolidated coverage
+        shell: pwsh
         run: |
-          dir coverage-report
-          Get-Content coverage-report/Cobertura.xml -First 30
+          Write-Host 'Arquivos em coverage-report:'
+          Get-ChildItem -Path coverage-report
+          Write-Host 'Início do conteúdo do coverage.cobertura.xml:'
+          Get-Content coverage-report/coverage.cobertura.xml -First 30
 
       - name: End SonarCloud analysis
         env:
