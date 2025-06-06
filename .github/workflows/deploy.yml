@@ -3,10 +3,10 @@ name: CI/CD .NET Core App para Azure WebApp
 on:
   push:
     branches:
-      - master         
-      - develop        
-      - 'feature/**'   
-      - 'release/**'   
+      - master        
+      - develop      
+      - 'feature/**' 
+      - 'release/**' 
 
 jobs:
   sonarcloud-analyze:
@@ -55,8 +55,8 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.opencover.reportsPaths="coverage-report/coverage.cobertura.xml"
-      
+            /d:sonar.cs.opencover.reportsPaths="coverage-report/coverage.cobertura.xml" 
+
       - name: Restore dependencies
         run: dotnet restore
 
@@ -66,18 +66,20 @@ jobs:
       - name: Run tests with coverage
         run: dotnet test Solidariza.sln --no-build --verbosity normal --collect:"XPlat Code Coverage"
 
+      - name: Debug - Localizar arquivos de cobertura gerados
+        run: Get-ChildItem -Recurse -Filter "coverage.cobertura.xml" | Select-Object FullName
+
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
-      - name: Convert coverage to cobertura.xml
-        run: |
-          reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:Cobertura
+      - name: Gerar relatório Cobertura (consolidado na raiz)
+        run: reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:Cobertura
 
-      - name: Show generated cobertura file(s)
-        run: Get-ChildItem -Recurse -Filter "coverage.cobertura.xml"
+      - name: Debug - Listar arquivos dentro do coverage-report
+        run: Get-ChildItem -Recurse -Path coverage-report
 
-      - name: Show first 30 lines of cobertura
-        run: Get-Content coverage-report/coverage.cobertura.xml -First 30
+      - name: Mostrar primeiras 40 linhas do Cobertura unificado
+        run: Get-Content coverage-report/coverage.cobertura.xml -First 40
 
       - name: End SonarCloud analysis
         env:
