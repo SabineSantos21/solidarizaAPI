@@ -55,7 +55,7 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.opencover.reportsPaths="coverage-report/coverage.cobertura.xml"
+            /d:sonar.cs.opencover.reportsPaths="coverage-report/Cobertura.xml"
 
       - name: Restore dependencies
         run: dotnet restore
@@ -70,12 +70,12 @@ jobs:
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
       - name: Consolidate coverage
-        run: reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:coverage-report -reporttypes:Cobertura -reportfilename:coverage.cobertura.xml
+        run: reportgenerator -reports:"**/Cobertura.xml" -targetdir:coverage-report -reporttypes:Cobertura -reportfilename:Cobertura.xml
 
       - name: Debug consolidated coverage
         run: |
           dir coverage-report
-          Get-Content coverage-report/coverage.cobertura.xml -First 30
+          Get-Content coverage-report/Cobertura.xml -First 30
 
       - name: End SonarCloud analysis
         env:
