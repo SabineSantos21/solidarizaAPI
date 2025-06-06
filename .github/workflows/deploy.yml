@@ -55,7 +55,7 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.opencover.reportsPaths="coverage-report/coverage.cobertura.xml"
+            /d:sonar.cs.cobertura.reportsPaths="coverage-report/coverage.cobertura.xml"
 
       - name: Restore dependencies
         run: dotnet restore
@@ -80,7 +80,7 @@ jobs:
       - name: Instalar ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
-      - name: Consolidar cobertura em diretório central
+      - name: Consolidar Cobertura
         shell: pwsh
         run: |
           $coverage = Get-ChildItem -Path . -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
