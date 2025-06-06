@@ -66,9 +66,9 @@ jobs:
       - name: Build solution
         run: dotnet build --no-restore --no-incremental
 
-      - name: Run tests with coverage (Cobertura)
+      - name: Run tests with coverage (Cobertura) no solution
         run: |
-          dotnet-coverage collect "dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity normal" -f cobertura -o "coverage.cobertura.xml"
+          dotnet-coverage collect "dotnet test Solidariza.sln --no-build --verbosity normal" -f cobertura -o "coverage.cobertura.xml"
 
       - name: Mostrar arquivo de cobertura gerado
         run: Get-ChildItem -Path . -Filter "coverage.cobertura.xml"
