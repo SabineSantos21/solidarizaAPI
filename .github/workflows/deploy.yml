@@ -3,10 +3,10 @@ name: CI/CD .NET Core App para Azure WebApp
 on:
   push:
     branches:
-      - master
-      - develop
-      - 'feature/**'
-      - 'release/**'
+      - master         # build, testes, sonar, deploy
+      - develop      # build, testes, sonar
+      - 'feature/**' # build, testes, sonar
+      - 'release/**' # build, testes, sonar
 
 jobs:
   sonarcloud-analyze:
@@ -24,16 +24,30 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v4
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
         with:
-          dotnet-version: '8.0.x'
+          path: ~\sonar\cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache SonarCloud scanner
+        id: cache-sonar-scanner
+        uses: actions/cache@v4
+        with:
+          path: .\.sonar\scanner
+          key: ${{ runner.os }}-sonar-scanner
+          restore-keys: ${{ runner.os }}-sonar-scanner
 
       - name: Install SonarCloud scanner
+        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
         shell: powershell
         run: |
           New-Item -Path .\.sonar\scanner -ItemType Directory -Force
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+
+      - name: Install dotnet-coverage
+        run: dotnet tool install --global dotnet-coverage
 
       - name: Begin SonarCloud analysis
         env:
@@ -44,17 +58,11 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.opencover.reportsPaths="coverage/**/coverage.opencover.xml" `
-            /d:sonar.coverage.exclusions="Solidariza.Tests/**" `
+            /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml" `
             /d:sonar.scm.provider="git" `
             /v:${{ github.sha }} `
             /d:sonar.sourceEncoding="UTF-8" `
-            /d:sonar.security.hotspots.enabled="true" `
-            /d:sonar.sources="SolidarizaAPI" `
-            /d:sonar.tests="Solidariza.Tests" `
-            /d:sonar.cs.file.suffixes=".cs" `
-            /d:sonar.inclusions="SolidarizaAPI/**/*.cs" `
-            /d:sonar.exclusions="**/obj/**,**/bin/**"
+            /d:sonar.security.hotspots.enabled="true"
 
       - name: Restore dependencies
         run: dotnet restore
@@ -63,23 +71,11 @@ jobs:
         run: dotnet build --no-restore --no-incremental
 
       - name: Run tests with coverage
-        shell: powershell
         run: |
-          dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
-            --no-build `
-            --collect:"XPlat Code Coverage" `
-            --settings coverlet.runsettings `
-            --results-directory coverage `
-            --verbosity normal
+          dotnet-coverage collect "dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity normal" -f xml -o "coverage.xml"
 
-          $coveragePath = Get-ChildItem -Recurse -Filter "coverage.opencover.xml"
-          if ($coveragePath.Count -eq 0) {
-            Write-Error "Erro: coverage.opencover.xml não encontrado!"
-            exit 1
-          } else {
-            Write-Host "coverage.opencover.xml encontrado em:"
-            $coveragePath | ForEach-Object { Write-Host $_.FullName }
-          }
+      - name: Mostrar arquivo de cobertura gerado
+        run: Get-ChildItem -Path . -Filter "coverage.xml"
 
       - name: End SonarCloud analysis
         env:
@@ -107,13 +103,26 @@ jobs:
         run: dotnet restore --runtime win-x64
 
       - name: Build (win-x64)
-        run: dotnet build ./SolidarizaAPI/SolidarizaAPI.csproj --configuration Release --runtime win-x64 --no-restore
+        run: dotnet build ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --no-restore
 
       - name: Testes
-        run: dotnet test ./Solidariza.Tests/Solidariza.Tests.csproj --configuration Release --runtime win-x64 --no-build --verbosity normal
+        run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --no-build --verbosity normal
 
       - name: Publish (self-contained para Windows 64 bits)
-        run: dotnet publish ./SolidarizaAPI/SolidarizaAPI.csproj --configuration Release --output ./publish
+        run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --output ./publish
+
+      - name: Verifique se DLL base está publicada
+        run: find ./publish -name 'System.Private.CoreLib.dll' || true
+
+      - name: Listar arquivos publicados
+        run: ls -lh ./publish
+
+      - name: Procurar DLLs base (corelib, threading, hostfxr)
+        run: |
+          find ./publish -name 'System.Private.CoreLib.dll'
+          find ./publish -name 'System.Threading.dll'
+          find ./publish -name 'hostfxr.dll'
+          find ./publish -name 'hostpolicy.dll'
 
       - name: Limpar wwwroot via Kudu API
         if: github.ref == 'refs/heads/master'
