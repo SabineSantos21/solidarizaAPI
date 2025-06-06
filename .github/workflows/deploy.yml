@@ -88,6 +88,11 @@ jobs:
           New-Item -ItemType Directory -Path coverage-report -Force | Out-Null
           Copy-Item $coverage.FullName coverage-report/coverage.cobertura.xml -Force
 
+      - name: Ajustar <sources> do Cobertura
+        shell: pwsh
+        run: |
+          (Get-Content coverage-report/coverage.cobertura.xml) -replace '<source>.*</source>', '<source>.</source>' | Set-Content coverage-report/coverage.cobertura.xml
+
       - name: Debug consolidated coverage
         shell: pwsh
         run: |
