@@ -64,13 +64,22 @@ jobs:
         run: dotnet build --no-restore --no-incremental
 
       - name: Test with code coverage
-        run: dotnet test Solidariza.sln --no-build --verbosity normal --collect:"XPlat Code Coverage" --settings coverlet.runsettings
+        run: dotnet test Solidariza.sln --no-build --verbosity normal --collect:"XPlat Code Coverage"
 
-      - name: Install ReportGenerator
+      - name: Localizar arquivos de cobertura
+        run: |
+          echo "Arquivos encontrados:"
+          dir /s/b coverage.cobertura.xml || echo "Arquivo de cobertura não encontrado em subdiretórios."
+          dir /s/b *.xml
+
+      - name: Instalar ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
-      - name: Consolidate coverage
-        run: reportgenerator -reports:"**/Cobertura.xml" -targetdir:coverage-report -reporttypes:Cobertura -reportfilename:Cobertura.xml
+      - name: Consolidar cobertura em um único arquivo
+        shell: pwsh
+        run: |
+          reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:coverage-report -reporttypes:Cobertura -reportfilename:Cobertura.xml
+          if (-not (Test-Path "coverage-report/Cobertura.xml")) { Write-Error "Cobertura.xml não localizado após consolidar cobertura." }
 
       - name: Debug consolidated coverage
         run: |
@@ -80,8 +89,7 @@ jobs:
       - name: End SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        run: .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
   build-and-deploy:
     needs: [sonarcloud-analyze]
