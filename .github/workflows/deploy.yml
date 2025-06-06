@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - master         # build, testes, sonar, deploy
-      - develop      # build, testes, sonar
-      - 'feature/**' # build, testes, sonar
-      - 'release/**' # build, testes, sonar
+      - develop        # build, testes, sonar
+      - 'feature/**'   # build, testes, sonar
+      - 'release/**'   # build, testes, sonar
 
 jobs:
   sonarcloud-analyze:
@@ -58,7 +58,7 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml"
+            /d:sonar.cs.opencover.reportsPaths="coverage.cobertura.xml"
 
       - name: Restore dependencies
         run: dotnet restore
@@ -66,12 +66,15 @@ jobs:
       - name: Build solution
         run: dotnet build --no-restore --no-incremental
 
-      - name: Run tests with coverage
+      - name: Run tests with coverage (Cobertura)
         run: |
-          dotnet-coverage collect "dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity normal" -f xml -o "coverage.xml"
+          dotnet-coverage collect "dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity normal" -f cobertura -o "coverage.cobertura.xml"
 
       - name: Mostrar arquivo de cobertura gerado
-        run: Get-ChildItem -Path . -Filter "coverage.xml"
+        run: Get-ChildItem -Path . -Filter "coverage.cobertura.xml"
+
+      - name: Conteúdo do arquivo de cobertura (primeiras 30 linhas)
+        run: Get-Content ./coverage.cobertura.xml -First 30
 
       - name: End SonarCloud analysis
         env:
