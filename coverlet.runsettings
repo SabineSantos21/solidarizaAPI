@@ -6,7 +6,7 @@
         <Configuration>
           <Format>cobertura</Format>
           <OutputDirectory>coverage</OutputDirectory>
-          <Include>[SolidarizaAPI]*</Include>
+          <UseRelativePaths>true</UseRelativePaths>
         </Configuration>
       </DataCollector>
     </DataCollectors>

@@ -70,9 +70,8 @@ jobs:
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
       - name: Consolidate coverage
-        run: reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:coverage-report -reporttypes:Cobertura
+        run: reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:coverage-report -reporttypes:Cobertura -reportfilename:coverage.cobertura.xml
 
-      # Debug opcional: confira se o arquivo consolidado realmente existe e veja início do conteúdo:
       - name: Debug consolidated coverage
         run: |
           dir coverage-report
