@@ -113,7 +113,8 @@ jobs:
               $classFile = Split-Path $cls.filename -Leaf
               $matches = $allCsFiles | Where-Object { $_.Name -eq $classFile }
               if ($matches.Count -eq 1) {
-                  $relativePath = $matches.FullName.Substring($rootDir.Length) -replace '\','/'
+                  $fullName = $matches[0].FullName
+                  $relativePath = $fullName.Substring($rootDir.Length) -replace '\','/'
                   $cls.filename = $relativePath
               }
           }
