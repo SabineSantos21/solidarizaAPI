@@ -46,23 +46,24 @@ jobs:
           New-Item -Path .\.sonar\scanner -ItemType Directory -Force
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
 
-      - name: Install ReportGenerator
+      - name: Install Coverlet and ReportGenerator
         shell: powershell
         run: |
+          dotnet tool install -g coverlet.console
           dotnet tool install -g dotnet-reportgenerator-globaltool
           echo "$env:USERPROFILE\.dotnet\tools" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
 
       - name: Run Tests and Generate Coverage Report
         shell: powershell
         run: |
-          dotnet test --collect:"XPlat Code Coverage"
-          ~/.dotnet/tools/reportgenerator -reports:TestResults/**/*.xml -targetdir:CoverageReports -reporttypes:"Cobertura"
+          dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=TestResults/coverage.cobertura.xml
+          ~/.dotnet/tools/reportgenerator -reports:TestResults/coverage.cobertura.xml -targetdir:CoverageReports -reporttypes:"Cobertura"
 
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportPaths="CoverageReports/coverage.xml"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportPaths="CoverageReports/coverage.cobertura.xml"
           dotnet build
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
