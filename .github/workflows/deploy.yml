@@ -115,6 +115,7 @@ jobs:
               if ($matches.Count -eq 1) {
                   $fullName = $matches[0].FullName
                   $relativePath = $fullName.Substring($rootDir.Length).Replace('\','/')
+                  if ($relativePath.StartsWith('/')) { $relativePath = $relativePath.Substring(1) }
                   $cls.filename = $relativePath
               }
           }
