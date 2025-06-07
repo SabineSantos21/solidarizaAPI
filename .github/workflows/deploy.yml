@@ -13,55 +13,34 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - name: Checkout código
+        uses: actions/checkout@v2
         with:
-          dotnet-version: '8.0.x'
+          fetch-depth: 0  # Importante para SonarCloud obter histórico de vcs
 
-      - name: Install dependencies
+      - name: Instalar .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x  # Altere se usar outra versão do .NET
+
+      - name: Restaurar dependências
         run: dotnet restore
 
-      - name: Install SonarScanner
+      - name: Compilar solução
+        run: dotnet build --no-restore
+
+      - name: Executar testes com cobertura
+        run: dotnet test --no-build --collect:"XPlat Code Coverage" --logger trx
+
+      - name: Instalar SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
 
-      - name: Begin SonarCloud analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: >
-          dotnet sonarscanner begin
-          /k:"SabineSantos21_solidarizaAPI"
-          /o:"sabinesantos21"
-          /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-          /d:sonar.host.url="https://sonarcloud.io"
-          /d:sonar.cs.xunit.reportsPaths="TestResults/results.trx"
-          /d:sonar.coverageReportPaths="TestResults/coverage.opencover.xml"
-          /d:sonar.exclusions="**/bin/**,**/obj/**"
-          /d:sonar.coverage.exclusions="**/Program.cs,**/Startup.cs"
-
-      - name: Build solution
-        run: dotnet build --no-restore --configuration Release
-
-      - name: Run tests and collect coverage
+      - name: SonarCloud Begin Analysis
         run: |
-          dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
-            --no-build `
-            --configuration Release `
-            --logger "trx;LogFileName=results.trx" `
-            --results-directory TestResults `
-            /p:CollectCoverage=true `
-            /p:CoverletOutputFormat=opencover `
-            /p:CoverletOutput=TestResults/coverage.opencover.xml
+          dotnet sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
 
-      - name: Check TestResults folder
-        shell: pwsh
-        run: |
-          Write-Host "Arquivos na pasta TestResults:"
-          Get-ChildItem -Path TestResults -Recurse | Select-Object FullName,Length | Format-Table -AutoSize
+      - name: Build para análise SonarCloud
+        run: dotnet build --no-restore
 
-      - name: End SonarCloud analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: SonarCloud End Analysis
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
