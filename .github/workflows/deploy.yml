@@ -1,17 +1,21 @@
-name: CI/CD .NET Core App para Azure WebApp
+name: .NET 8 CI with SonarCloud
 
 on:
   push:
     branches:
-      - master        # deploy produção
-      - develop     # build, testes, sonar
-      - 'feature/**' # build, testes, sonar
-      - 'release/**' # build, testes, sonar, deploy homolog
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  SONAR_PROJECT_KEY: SabineSantos21_solidarizaAPI
+  SONAR_ORG: sabinesantos21
 
 jobs:
   sonarcloud-analyze:
     runs-on: windows-latest
-    if: github.ref != 'refs/heads/master' # skip sonar em master, já testou antes
 
     steps:
       - name: Set up JDK 17
