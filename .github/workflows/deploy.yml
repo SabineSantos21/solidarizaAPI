@@ -49,13 +49,13 @@ jobs:
         run: dotnet restore Solidariza.sln
 
       - name: Begin SonarCloud analysis
-        run: dotnet sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths="Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/TestResults/Solidariza.Tests/TestResults/coverage.cobertura.xml" /d:sonar.cs.xunit.reportsPaths="Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/TestResults/Solidariza.Tests/TestResults/results.trx" /d:sonar.exclusions="**/obj/**,**/bin/**,**/Solidariza.Tests/**" /d:sonar.projectBaseDir="C:\a\solidarizaAPI\solidarizaAPI" /d:sonar.scm.disabled=true /d:sonar.verbose=true
+        run: dotnet sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths="Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/TestResults/Solidariza.Tests/TestResults/coverage.cobertura.xml" /d:sonar.cs.xunit.reportsPaths="Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/TestResults/Solidariza.Tests/TestResults/results.trx" /d:sonar.exclusions="**/obj/**,**/bin/**,**/Solidariza.Tests/**" /d:sonar.projectBaseDir="C:\a\solidarizaAPI\solidarizaAPI" /d:sonar.scm.disabled=true /d:sonar.verbose=true
 
       - name: Build
         run: dotnet build Solidariza.sln --configuration Release --no-restore
 
       - name: Run tests with coverage
-        run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-restore /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/TestResults/Solidariza.Tests/TestResults/coverage.cobertura.xml /p:UseSourceLink=true /p:CoverletOutputRelativePaths=true --logger "trx;LogFileName=Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/TestResults/Solidariza.Tests/TestResults/results.trx"
+        run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-restore /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/TestResults/Solidariza.Tests/TestResults/coverage.cobertura.xml /p:UseSourceLink=true /p:CoverletOutputRelativePaths=true --logger "trx;LogFileName=Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/TestResults/Solidariza.Tests/TestResults/results.trx"
 
       - name: List coverage files
         run: dir /s /b coverage.cobertura.xml
@@ -72,7 +72,7 @@ jobs:
         continue-on-error: true
 
       - name: Inspect TRX file
-        run: type "Solidariza.Tests\Solidariza.Tests\Solidariza.Tests\Solidariza.Tests\TestResults\Solidariza.Tests\TestResults\results.trx"
+        run: type "Solidariza.Tests\Solidariza.Tests\Solidariza.Tests\Solidariza.Tests\Solidariza.Tests\TestResults\Solidariza.Tests\TestResults\results.trx"
         shell: cmd
         continue-on-error: true
 
