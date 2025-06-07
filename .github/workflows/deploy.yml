@@ -16,7 +16,7 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # evita shallow clone
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -25,20 +25,6 @@ jobs:
 
       - name: Install dependencies
         run: dotnet restore
-
-      - name: Build solution
-        run: dotnet build --no-restore --configuration Release
-
-      - name: Run tests with coverage
-        run: |
-          mkdir -p TestResults
-          dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
-            --no-build `
-            --configuration Release `
-            /p:CollectCoverage=true `
-            /p:CoverletOutputFormat=opencover `
-            /p:CoverletOutput=TestResults/coverage.xml `
-            --logger "trx;LogFileName=TestResults/results.trx"
 
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
@@ -58,8 +44,19 @@ jobs:
             /d:sonar.coverage.exclusions="**/Program.cs,**/Startup.cs" `
             /d:sonar.scanner.scanAll=false
 
-      - name: Rebuild solution for analysis
+      - name: Build solution
         run: dotnet build --no-restore --configuration Release
+
+      - name: Run tests with coverage
+        run: |
+          mkdir -p TestResults
+          dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
+            --no-build `
+            --configuration Release `
+            /p:CollectCoverage=true `
+            /p:CoverletOutputFormat=cobertura `
+            /p:CoverletOutput=TestResults/coverage.xml `
+            --logger "trx;LogFileName=TestResults/results.trx"
 
       - name: End SonarCloud analysis
         env:
