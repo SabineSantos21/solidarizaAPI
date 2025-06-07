@@ -1,82 +1,66 @@
-name: CI with SonarCloud
+name: Build and Analyze SolidarizaAPI
 
 on:
   push:
     branches:
-      - master
-      - develop
-      - 'feature/**'
-      - 'release/**'
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  sonarcloud-analyze:
+  build:
+    name: Build, Test and Analyze
     runs-on: windows-latest
 
     steps:
-      - name: Set up JDK 17 (required by SonarCloud)
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          distribution: 'zulu'
-
-      - name: Checkout repository
+      - name: Checkout source code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar-cache
-          restore-keys: ${{ runner.os }}-sonar-cache
+          dotnet-version: '8.0.x'
 
-      - name: Install SonarScanner for .NET
+      - name: Install dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run tests with coverage
         run: |
-          dotnet tool install --global dotnet-sonarscanner
-          echo "${HOME}/.dotnet/tools" >> $GITHUB_PATH
+          dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
+            --no-build `
+            --configuration Release `
+            /p:CollectCoverage=true `
+            /p:CoverletOutputFormat=cobertura `
+            /p:CoverletOutput=../TestResults/coverage.xml `
+            /logger:"trx;LogFileName=TestResults/results.trx"
 
-      - name: Install Coverlet
-        run: dotnet add Solidariza.Tests/Solidariza.Tests.csproj package coverlet.msbuild
-
-      - name: Restore dependencies
-        run: dotnet restore Solidariza.sln
+      - name: Install SonarScanner
+        run: dotnet tool install --global dotnet-sonarscanner
 
       - name: Begin SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           dotnet sonarscanner begin `
             /k:"SabineSantos21_solidarizaAPI" `
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/coverage.cobertura.xml" `
-            /d:sonar.cs.xunit.reportsPaths="**/TestResults/results.trx" `
-            /d:sonar.exclusions="**/obj/**,**/bin/**,**/*.sql,**/*.json,**/*.yml,**/*.yaml" `
-            /d:sonar.verbose=true
+            /d:sonar.sources="Solidariza" `
+            /d:sonar.tests="Solidariza.Tests" `
+            /d:sonar.cs.xunit.reportsPaths=TestResults/results.trx `
+            /d:sonar.cs.vscoveragexml.reportsPaths=TestResults/coverage.xml `
+            /d:sonar.exclusions="**/bin/**,**/obj/**" `
+            /d:sonar.coverage.exclusions="**/Program.cs,**/Startup.cs"
 
-      - name: Build solution
-        run: dotnet build Solidariza.sln --configuration Release --no-restore
-
-      - name: Create TestResults directory
-        run: mkdir -p Solidariza.Tests/TestResults
-
-      - name: Run tests with coverage
-        run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
-          --no-restore `
-          --configuration Release `
-          /p:CollectCoverage=true `
-          /p:CoverletOutputFormat=cobertura `
-          /p:CoverletOutput=TestResults/coverage.cobertura.xml `
-          /p:UseSourceLink=true `
-          /p:CoverletOutputRelativePaths=true `
-          --logger "trx;LogFileName=TestResults/results.trx"
-
-      - name: Verify coverage files
-        run: |
-          dir Solidariza.Tests\TestResults
-          type Solidariza.Tests\TestResults\coverage.cobertura.xml
-        shell: cmd
-        continue-on-error: true
+      - name: Rebuild solution for analysis
+        run: dotnet build --no-restore --configuration Release
 
       - name: End SonarCloud analysis
-        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
