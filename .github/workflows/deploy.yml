@@ -13,30 +13,68 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - name: Set up JDK 17 (required by SonarCloud)
+        uses: actions/setup-java@v4
         with:
-          dotnet-version: '8.0.x'
+          java-version: 17
+          distribution: 'zulu'
 
-      - name: Install dependencies
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history for Sonar analysis
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar-cache
+          restore-keys: ${{ runner.os }}-sonar-cache
+
+      - name: Install SonarScanner for .NET
+        run: |
+          dotnet tool install --global dotnet-sonarscanner
+          echo "${HOME}/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Install Coverlet
+        run: dotnet add Solidariza.Tests/Solidariza.Tests.csproj package coverlet.msbuild
+
+      - name: Restore dependencies
         run: dotnet restore Solidariza.sln
 
       - name: Begin SonarCloud analysis
-        run: dotnet sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.xunit.reportsPaths="TestResults/results.trx" /d:sonar.cs.vscoveragexml.reportsPaths="**/coverage.cobertura.xml"
+        run: |
+          dotnet sonarscanner begin `
+            /k:"SabineSantos21_solidarizaAPI" `
+            /o:"sabinesantos21" `
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
+            /d:sonar.host.url="https://sonarcloud.io" `
+            /d:sonar.cs.vscoveragexml.reportsPaths="TestResults/coverage.cobertura.xml" `
+            /d:sonar.cs.xunit.reportsPaths="TestResults/results.trx" `
+            /d:sonar.exclusions="**/obj/**,**/bin/**,**/*.sql,**/*.json,**/*.yml,**/*.yaml" `
+            /d:sonar.verbose=true `
+            /d:sonar.scanner.scanAll=false
 
       - name: Build solution
         run: dotnet build Solidariza.sln --configuration Release --no-restore
 
-      - name: Test with coverage
-        run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory ./TestResults --logger trx
+      - name: Run tests with coverage
+        run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
+          --no-restore `
+          --configuration Release `
+          /p:CollectCoverage=true `
+          /p:CoverletOutputFormat=cobertura `
+          /p:CoverletOutput=TestResults/coverage.cobertura.xml `
+          /p:UseSourceLink=true `
+          /p:CoverletOutputRelativePaths=true `
+          --logger "trx;LogFileName=TestResults/results.trx"
 
-      - name: Convert coverage to cobertura
+      - name: Verify coverage files
         run: |
-          dotnet tool install --global dotnet-reportgenerator-globaltool
-          reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage-report -reporttypes:Cobertura
+          dir TestResults
+          type TestResults\coverage.cobertura.xml
+        shell: cmd
+        continue-on-error: true
 
       - name: End SonarCloud analysis
-        run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
