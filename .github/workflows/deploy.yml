@@ -100,13 +100,15 @@ jobs:
         shell: pwsh
         run: |
           $coverageXml = "coverage-report/coverage.cobertura.xml"
-          $allCsFiles = Get-ChildItem -Path . -Recurse -Filter *.cs |
-            Where-Object {
-                $_.FullName -notmatch '\bin\' -and `
-                $_.FullName -notmatch '\obj\' -and `
-                $_.FullName -notmatch 'coverage-report' -and `
-                $_.FullName -notmatch 'coverage-html'
-            }
+
+          # Lista todos os arquivos .cs no workspace, ignorando pastas temporárias e artefatos
+          $allCsFiles = Get-ChildItem -Path . -Recurse -Filter *.cs | Where-Object {
+              $_.FullName -notlike "*\bin\*" -and
+              $_.FullName -notlike "*\obj\*" -and
+              $_.FullName -notlike "*coverage-report*" -and
+              $_.FullName -notlike "*coverage-html*"
+          }
+
           [xml]$xml = Get-Content $coverageXml
           foreach ($cls in $xml.coverage.packages.package.classes.class) {
               $classFile = Split-Path $cls.filename -Leaf
