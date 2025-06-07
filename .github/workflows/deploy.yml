@@ -100,21 +100,20 @@ jobs:
         shell: pwsh
         run: |
           $coverageXml = "coverage-report/coverage.cobertura.xml"
-
-          # Lista todos os arquivos .cs no workspace, ignorando pastas temporárias e artefatos
+          $rootDir = [System.IO.Directory]::GetCurrentDirectory()
+          if (!$rootDir.EndsWith("")) { $rootDir += "" }
           $allCsFiles = Get-ChildItem -Path . -Recurse -Filter *.cs | Where-Object {
               $_.FullName -notlike "*\bin\*" -and
               $_.FullName -notlike "*\obj\*" -and
               $_.FullName -notlike "*coverage-report*" -and
               $_.FullName -notlike "*coverage-html*"
           }
-
           [xml]$xml = Get-Content $coverageXml
           foreach ($cls in $xml.coverage.packages.package.classes.class) {
               $classFile = Split-Path $cls.filename -Leaf
               $matches = $allCsFiles | Where-Object { $_.Name -eq $classFile }
               if ($matches.Count -eq 1) {
-                  $relativePath = $matches.FullName.Replace("$PWD", "").Replace("", "/")
+                  $relativePath = $matches.FullName.Substring($rootDir.Length) -replace '\','/'
                   $cls.filename = $relativePath
               }
           }
