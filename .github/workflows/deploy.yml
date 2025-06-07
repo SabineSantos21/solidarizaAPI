@@ -28,47 +28,28 @@ jobs:
       - name: Instalar SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
 
-      - name: SonarCloud Begin
-        run: |
-          dotnet sonarscanner begin `
-            /k:"SabineSantos21_solidarizaAPI" `
-            /o:"sabinesantos21" `
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
-            /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.cobertura.reportsPaths="coverage.cobertura.xml"
+      - name: SonarCloud Begin Analysis
+        run: dotnet sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.cobertura.reportsPaths="coverage.cobertura.xml" /d:sonar.sourceEncoding="UTF-8"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      - name: dotnet restore
+      - name: Restaurar dependências (pós-begin)
         run: dotnet restore
 
-      - name: dotnet build
+      - name: Build para análise SonarCloud
         run: dotnet build --no-restore
 
-      - name: dotnet test com cobertura
+      - name: Executar testes com cobertura
         run: dotnet test --no-build --collect:"XPlat Code Coverage" --logger trx
-
-      - name: Listar arquivos de cobertura
-        shell: pwsh
-        run: Get-ChildItem -Recurse -File | Where-Object {$_.Name -match "coverage.cobertura.xml"} | Select-Object FullName
 
       - name: Copiar cobertura para a raiz do projeto
         shell: pwsh
         run: |
-          $report = Get-ChildItem -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
+          $report = Get-ChildItem -Recurse -Filter "coverage.cobertura.xml" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
           Write-Host "Arquivo encontrado: $($report.FullName)"
           Copy-Item $report.FullName $env:GITHUB_WORKSPACE/coverage.cobertura.xml -Force
 
-      - name: Listar arquivo na raiz após cópia
-        shell: pwsh
-        run: |
-          if ((Test-Path "coverage.cobertura.xml")) {
-            Get-Content "coverage.cobertura.xml" -First 15
-          } else {
-            Write-Host "Arquivo coverage.cobertura.xml não encontrado na raiz!"
-          }
-
-      - name: SonarCloud End
+      - name: SonarCloud End Analysis
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
