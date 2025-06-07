@@ -56,9 +56,16 @@ jobs:
             --results-directory TestResults `
             --collect:"XPlat Code Coverage"
 
+      - name: Copy coverage report to root TestResults
+        run: |
+          $coverageFile = Get-ChildItem -Path TestResults -Recurse -Filter 'coverage.cobertura.xml' | Select-Object -First 1
+          Copy-Item $coverageFile.FullName -Destination TestResults/coverage.cobertura.xml -Force
+        shell: pwsh
+
       - name: List TestResults contents (debug)
         run: Get-ChildItem -Recurse ./TestResults
         shell: pwsh
+
 
       - name: End SonarCloud analysis
         env:
