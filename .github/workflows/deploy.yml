@@ -1,4 +1,4 @@
-name: .NET 8 CI with SonarCloud
+name: CI/CD .NET Core App para Azure WebApp
 
 on:
   push:
