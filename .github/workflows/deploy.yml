@@ -45,12 +45,19 @@ jobs:
       - name: Test with coverage
         run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj --collect:"XPlat Code Coverage" --results-directory coverage
 
-      - name: List Cobertura file(s)
-        run: find coverage -name 'coverage.cobertura.xml' -print
+      - name: Instala ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
-      - name: Move cobertura result
+      - name: Gera Cobertura mesclada
         run: |
-          mv $(find coverage -name 'coverage.cobertura.xml' | head -n 1) coverage/coverage.cobertura.xml
+          ~/.dotnet/tools/reportgenerator \
+            -reports:"coverage/**/coverage.cobertura.xml" \
+            -targetdir:"coverage/merged" \
+            -reporttypes:Cobertura
+
+      - name: Move Cobertura mesclada
+        run: |
+          cp coverage/merged/Cobertura.xml coverage/coverage.cobertura.xml
 
       - name: End SonarCloud analysis
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
