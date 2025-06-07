@@ -39,8 +39,14 @@ jobs:
 
       - name: SonarCloud Begin Analysis
         run: |
-          dotnet sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
-
+          dotnet sonarscanner begin \
+            /k:"SabineSantos21_solidarizaAPI" \
+            /o:"sabinesantos21" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.cs.cobertura.reportsPaths="**/coverage.cobertura.xml" \
+            /d:sonar.sourceEncoding="UTF-8"
+            
       - name: Build para análise SonarCloud
         run: dotnet build --no-restore
 
