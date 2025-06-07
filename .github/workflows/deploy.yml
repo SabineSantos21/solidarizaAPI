@@ -35,7 +35,7 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.cobertura.reportsPaths="**/coverage.cobertura.xml" `
+            /d:sonar.cs.cobertura.reportsPaths="coverage.cobertura.xml" `
             /d:sonar.sourceEncoding="UTF-8"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -48,6 +48,14 @@ jobs:
 
       - name: Executar testes com cobertura
         run: dotnet test --no-build --collect:"XPlat Code Coverage" --logger trx --results-directory TestResults
+
+      - name: Copiar cobertura para a raiz
+        shell: pwsh
+        run: |
+          $report = Get-ChildItem -Recurse -Filter 'coverage.cobertura.xml' | Select-Object -First 1
+          if ($null -ne $report) {
+            Copy-Item $report.FullName ./coverage.cobertura.xml -Force
+          }
 
       - name: SonarCloud End Analysis
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
