@@ -53,9 +53,13 @@ jobs:
             --no-build `
             --configuration Release `
             /p:CollectCoverage=true `
-            /p:CoverletOutput=TestResults/coverage.opencover.xml `
+            /p:CoverletOutput="$(pwd)/TestResults/coverage.opencover.xml" `
             /p:CoverletOutputFormat=opencover `
             --logger "trx;LogFileName=results.trx"
+
+      - name: List TestResults contents (debug)
+        run: Get-ChildItem -Recurse ./TestResults
+        shell: pwsh
 
       - name: End SonarCloud analysis
         env:
