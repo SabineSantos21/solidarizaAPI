@@ -1,4 +1,4 @@
-name: CI/CD .NET Core App para Azure WebApp
+name: CI/CD .NET Core API com SonarCloud e Azure WebApp
 
 on:
   push:
@@ -64,7 +64,7 @@ jobs:
       - name: Build solution
         run: dotnet build --no-restore --no-incremental
 
-      - name: Test with coverage
+      - name: Run tests with coverage
         run: >
           dotnet test Solidariza.sln --no-build --verbosity normal --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
 
@@ -90,31 +90,37 @@ jobs:
           }
           [xml]$xml = Get-Content $coverageXml
           foreach ($cls in $xml.coverage.packages.package.classes.class) {
-              $found = $allCsFiles | Where-Object { $_.Name -eq (Split-Path $cls.filename -Leaf) }
-              if ($found.Count -eq 1) {
-                  $relative = $found[0].FullName.Substring($rootDir.Length).Replace('\','/')
-                  if ($relative.StartsWith('/')) { $relative = $relative.Substring(1) }
-                  $cls.filename = $relative
+              $classFile = Split-Path $cls.filename -Leaf
+              $matches = $allCsFiles | Where-Object { $_.Name -eq $classFile }
+              if ($matches.Count -eq 1) {
+                  $fullName = $matches[0].FullName
+                  $relativePath = $fullName.Substring($rootDir.Length).Replace('\','/')
+                  if ($relativePath.StartsWith('/')) { $relativePath = $relativePath.Substring(1) }
+                  $cls.filename = $relativePath
               }
           }
           $xml.coverage.sources.source = "."
           $xml.Save($coverageXml)
 
-      - name: Debug arquivos fonte e Coverage
+      - name: Instalar ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Adicionar tools global .NET ao PATH
         shell: pwsh
         run: |
-          Write-Host "Arquivos C# sob . (runner):"
-          Get-ChildItem -Path . -Recurse -Include "*.cs" | ForEach-Object { $_.FullName }
-          Write-Host "Início do conteúdo do coverage.cobertura.xml:"
-          Get-Content coverage-report/coverage.cobertura.xml -First 30
+          $userProfile = $env:USERPROFILE
+          $env:PATH += ";$userProfile\.dotnet\tools"
+          [System.Environment]::SetEnvironmentVariable("PATH", $env:PATH, [System.EnvironmentVariableTarget]::Process)
 
       - name: Gerar HTML coverage para debug manual
-        run: reportgenerator -reports:"coverage-report/coverage.cobertura.xml" -targetdir:coverage-html
+        shell: pwsh
+        run: |
+          reportgenerator -reports:"coverage-report/coverage.cobertura.xml" -targetdir:coverage-html
 
-      - name: Salvar artifact coverage-html
+      - name: Salvar artifact cobertura-html
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-html
+          name: cobertura-html
           path: coverage-html
 
       - name: End SonarCloud analysis
