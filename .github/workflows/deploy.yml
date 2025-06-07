@@ -22,7 +22,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # full history for Sonar analysis
+          fetch-depth: 0
 
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
@@ -49,14 +49,16 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.vscoveragexml.reportsPaths="TestResults/coverage.cobertura.xml" `
-            /d:sonar.cs.xunit.reportsPaths="TestResults/results.trx" `
+            /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/coverage.cobertura.xml" `
+            /d:sonar.cs.xunit.reportsPaths="**/TestResults/results.trx" `
             /d:sonar.exclusions="**/obj/**,**/bin/**,**/*.sql,**/*.json,**/*.yml,**/*.yaml" `
-            /d:sonar.verbose=true `
-            /d:sonar.scanner.scanAll=false
+            /d:sonar.verbose=true
 
       - name: Build solution
         run: dotnet build Solidariza.sln --configuration Release --no-restore
+
+      - name: Create TestResults directory
+        run: mkdir -p Solidariza.Tests/TestResults
 
       - name: Run tests with coverage
         run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
@@ -71,8 +73,8 @@ jobs:
 
       - name: Verify coverage files
         run: |
-          dir TestResults
-          type TestResults\coverage.cobertura.xml
+          dir Solidariza.Tests\TestResults
+          type Solidariza.Tests\TestResults\coverage.cobertura.xml
         shell: cmd
         continue-on-error: true
 
