@@ -114,7 +114,7 @@ jobs:
               $matches = $allCsFiles | Where-Object { $_.Name -eq $classFile }
               if ($matches.Count -eq 1) {
                   $fullName = $matches[0].FullName
-                  $relativePath = $fullName.Substring($rootDir.Length) -replace '\','/'
+                  $relativePath = $fullName.Substring($rootDir.Length).Replace('\','/')
                   $cls.filename = $relativePath
               }
           }
