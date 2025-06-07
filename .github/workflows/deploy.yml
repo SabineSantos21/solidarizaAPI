@@ -56,8 +56,9 @@ jobs:
       - name: Run Tests and Generate Coverage Report
         shell: powershell
         run: |
-          dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/TestResults/Solidariza.Tests/TestResults/coverage.cobertura.xml
-          ~/.dotnet/tools/reportgenerator -reports:Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/TestResults/Solidariza.Tests/TestResults/coverage.cobertura.xml -targetdir:CoverageReports -reporttypes:"Cobertura"
+          dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=TestResults/coverage.cobertura.xml /p:UseSourceLink=true
+          Start-Sleep -Seconds 5  # Espera para evitar erro de leitura do arquivo
+          ~/.dotnet/tools/reportgenerator -reports:TestResults/**/coverage.cobertura.xml -targetdir:CoverageReports -reporttypes:"Cobertura"
 
       - name: Build and analyze
         env:
