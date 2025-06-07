@@ -55,14 +55,14 @@ jobs:
         run: dotnet build Solidariza.sln --configuration Release --no-restore
 
       - name: Run tests with coverage
-        run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-restore /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=Solidariza.Tests/TestResults/coverage.cobertura.xml --logger "trx;LogFileName=Solidariza.Tests/TestResults/results.trx"
+        run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-restore /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=Solidariza.Tests/TestResults/coverage.cobertura.xml /p:UseSourceLink=true --logger "trx;LogFileName=Solidariza.Tests/TestResults/results.trx"
 
       - name: List coverage files
         run: dir /s /b coverage.cobertura.xml
         shell: cmd
 
       - name: Inspect coverage files
-        run: for %%f in (coverage.cobertura.xml) do type "%%f"
+        run: for /F "delims=" %%f in ('dir /s /b coverage.cobertura.xml') do type "%%f"
         shell: cmd
         continue-on-error: true
 
