@@ -46,7 +46,7 @@ jobs:
         run: dotnet add Solidariza.Tests/Solidariza.Tests.csproj package coverlet.msbuild
 
       - name: Restore dependencies
-        run: dotnet restore solidarizaAPI.sln
+        run: dotnet restore Solidariza.sln
 
       - name: Begin SonarCloud analysis
         run: |
@@ -59,7 +59,7 @@ jobs:
             /d:sonar.exclusions="**/obj/**,**/bin/**"
 
       - name: Build
-        run: dotnet build solidarizaAPI.sln --configuration Release --no-restore
+        run: dotnet build Solidariza.sln --configuration Release --no-restore
 
       - name: Run tests with coverage
         run: |
