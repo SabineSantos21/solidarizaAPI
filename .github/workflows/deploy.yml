@@ -29,6 +29,9 @@ jobs:
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
 
+      - name: Install ReportGenerator tool
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -46,16 +49,27 @@ jobs:
       - name: Build solution
         run: dotnet build --no-restore --configuration Release
 
-      - name: Run tests with coverage
+      - name: Run tests with code coverage
         run: |
-          mkdir TestResults
+          mkdir -p TestResults
           dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
             --no-build `
             --configuration Release `
-            /p:CollectCoverage=true `
-            /p:CoverletOutput="$(pwd)/TestResults/coverage.opencover.xml" `
-            /p:CoverletOutputFormat=opencover `
-            --logger "trx;LogFileName=results.trx"
+            --logger "trx;LogFileName=results.trx" `
+            --results-directory TestResults `
+            --collect:"XPlat Code Coverage"
+
+      - name: Convert coverage report from cobertura to opencover
+        run: |
+          $covFile = Get-ChildItem -Path TestResults -Recurse -Filter 'coverage.cobertura.xml' | Select-Object -First 1
+          if ($covFile) {
+            reportgenerator -reports:$covFile.FullName -targetdir:TestResults/coverage-report -reporttypes:opencover
+            Copy-Item TestResults/coverage-report/coverage.opencover.xml TestResults/coverage.opencover.xml
+          } else {
+            Write-Error "Cobertura coverage file not found."
+            exit 1
+          }
+        shell: pwsh
 
       - name: List TestResults contents (debug)
         run: Get-ChildItem -Recurse ./TestResults
