@@ -3,7 +3,10 @@ name: .NET 8 CI with SonarCloud
 on:
   push:
     branches:
-      - master
+      - main          # deploy produção
+      - develop       # build, testes, sonar
+      - 'feature/**'  # build, testes, sonar
+      - 'release/**'  # build, testes, sonar, deploy homolog
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -13,18 +16,11 @@ env:
   SONAR_PROJECT_KEY: SabineSantos21_solidarizaAPI
   SONAR_ORG: sabinesantos21
 
-on:
-  push:
-    branches:
-      - main        # deploy produção
-      - develop     # build, testes, sonar
-      - 'feature/**' # build, testes, sonar
-      - 'release/**' # build, testes, sonar, deploy homolog
-
 jobs:
   sonarcloud-analyze:
     runs-on: windows-latest
-    if: github.ref != 'refs/heads/main' # skip sonar em main, já testou antes
+    # Roda SonarCloud exceto em push direto ao main (já deve ter rodado em PR)
+    if: (github.ref != 'refs/heads/main')
 
     steps:
       - name: Set up JDK 17
@@ -33,7 +29,7 @@ jobs:
           java-version: 17
           distribution: 'zulu'
 
-      - name: Checkout do código
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -41,7 +37,7 @@ jobs:
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
         with:
-          path: ~\sonar\cache
+          path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
@@ -49,29 +45,36 @@ jobs:
         id: cache-sonar-scanner
         uses: actions/cache@v4
         with:
-          path: .\.sonar\scanner
+          path: ./.sonar/scanner
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
 
-      - name: Install SonarCloud scanner
+      - name: Install SonarCloud Scanner (.NET tool)
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-        shell: powershell
         run: |
-          New-Item -Path .\.sonar\scanner -ItemType Directory -Force
-          dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+          mkdir -p ./.sonar/scanner
+          dotnet tool update dotnet-sonarscanner --tool-path ./.sonar/scanner
 
       - name: Install dotnet-coverage
         run: dotnet tool install --global dotnet-coverage
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin `
-            /k:"SabineSantos21_solidarizaAPI" `
-            /o:"sabinesantos21" `
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
-            /d:sonar.host.url="https://sonarcloud.io" `
+          ./.sonar/scanner/dotnet-sonarscanner begin \
+            /k:"${{ env.SONAR_PROJECT_KEY }}" \
+            /o:"${{ env.SONAR_ORG }}" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml"
 
       - name: Restore dependencies
@@ -80,7 +83,7 @@ jobs:
       - name: Build solution
         run: dotnet build --no-restore --no-incremental
 
-      - name: Run tests with coverage
+      - name: Run tests with coverage (gera coverage.xml)
         run: |
           dotnet-coverage collect "dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-build --verbosity normal" -f xml -o "coverage.xml"
 
@@ -91,4 +94,4 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          ./.sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
