@@ -1,4 +1,4 @@
-name: CI/CD .NET Core App para Azure WebApp
+name: CI with SonarCloud
 
 on:
   push:
@@ -49,73 +49,17 @@ jobs:
         run: dotnet restore Solidariza.sln
 
       - name: Begin SonarCloud analysis
-        run: dotnet sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/**/coverage.cobertura.xml,coverage/**/coverage.cobertura.xml" /d:sonar.exclusions="**/obj/**,**/bin/**"
+        run: dotnet sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/**/coverage.cobertura.xml,**/coverage/**/coverage.cobertura.xml" /d:sonar.cs.xunit.reportsPaths="**/TestResults/*.trx" /d:sonar.exclusions="**/obj/**,**/bin/**"
 
       - name: Build
         run: dotnet build Solidariza.sln --configuration Release --no-restore
 
       - name: Run tests with coverage
-        run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-restore /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=TestResults/coverage.cobertura.xml
+        run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-restore /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=TestResults/ --logger "trx;LogFileName=TestResults/results.trx"
+
+      - name: List coverage files
+        run: dir /s /b coverage.cobertura.xml
+        shell: cmd
 
       - name: End SonarCloud analysis
         run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
-
-  build-and-deploy:
-    needs: [sonarcloud-analyze]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
-
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Clean build outputs
-        run: dotnet clean --runtime win-x64
-
-      - name: Restore dependências
-        run: dotnet restore --runtime win-x64
-
-      - name: Build (win-x64)
-        run: dotnet build ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --no-restore
-
-      - name: Testes
-        run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --no-build --verbosity normal
-
-      - name: Publish (self-contained para Windows 64 bits)
-        run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --output ./publish
-
-      - name: Verifique se DLL base está publicada
-        run: find ./publish -name 'System.Private.CoreLib.dll' || true
-
-      - name: Listar arquivos publicados
-        run: ls -lh ./publish
-
-      - name: Procurar DLLs base (corelib, threading, hostfxr)
-        run: |
-          find ./publish -name 'System.Private.CoreLib.dll'
-          find ./publish -name 'System.Threading.dll'
-          find ./publish -name 'hostfxr.dll'
-          find ./publish -name 'hostpolicy.dll'
-
-      - name: Limpar wwwroot via Kudu API
-        if: github.ref == 'refs/heads/master'
-        env:
-          PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        run: |
-          user=$(echo "$PUBLISH_PROFILE" | grep -oP '(?<=userName=")[^"]+')
-          pass=$(echo "$PUBLISH_PROFILE" | grep -oP '(?<=userPWD=")[^"]+')
-          curl -i -u "$user:$pass" -X DELETE "https://solidarizaapi-cnbqcwduhta9bdbm.centralus-01.azurewebsites.net/api/vfs/site/wwwroot/"
-          sleep 5
-
-      - name: Deploy para Azure Web App
-        if: github.ref == 'refs/heads/master'
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'SolidarizaAPI'
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./publish
-          clean: true
