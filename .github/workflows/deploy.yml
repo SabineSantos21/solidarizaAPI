@@ -1,218 +1,55 @@
-name: CI/CD .NET Core App para Azure WebApp
+name: CI with SonarCloud
 
 on:
   push:
     branches:
-      - master
-      - develop
-      - 'feature/**'
-      - 'release/**'
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
-  sonarcloud-analyze:
-    runs-on: windows-latest
-
-    steps:
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          distribution: 'zulu'
-
-      - name: Checkout do código
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v4
-        with:
-          path: ~\sonar\cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
-      - name: Cache SonarCloud scanner
-        id: cache-sonar-scanner
-        uses: actions/cache@v4
-        with:
-          path: .\.sonar\scanner
-          key: ${{ runner.os }}-sonar-scanner
-          restore-keys: ${{ runner.os }}-sonar-scanner
-
-      - name: Install SonarCloud scanner
-        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-        shell: powershell
-        run: |
-          New-Item -Path .\.sonar\scanner -ItemType Directory -Force
-          dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
-
-      - name: Begin SonarCloud analysis (verbose + exclusões)
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin `
-            /k:"SabineSantos21_solidarizaAPI" `
-            /o:"sabinesantos21" `
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
-            /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.cobertura.reportsPaths="coverage-report/coverage.cobertura.xml" `
-            /d:sonar.verbose=true `
-            /d:sonar.exclusions="**/bin/**,**/obj/**,coverage-report/**,coverage-html/**"
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build solution
-        run: dotnet build --no-restore --no-incremental
-
-      - name: Test with code coverage
-        run: >
-          dotnet test Solidariza.sln --no-build --verbosity normal --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
-
-      - name: Localizar arquivos de cobertura
-        shell: pwsh
-        run: |
-          Write-Host "Procurando coverage.cobertura.xml no projeto..."
-          $files = Get-ChildItem -Path . -Recurse -Filter "coverage.cobertura.xml"
-          if ($files) {
-            $files | Select-Object -ExpandProperty FullName
-          } else {
-            Write-Warning "Nenhum arquivo de cobertura encontrado!"
-          }
-
-      - name: Instalar ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
-      - name: Consolidar Cobertura
-        shell: pwsh
-        run: |
-          $coverage = Get-ChildItem -Path . -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
-          if ($null -eq $coverage) { Write-Error "Nenhum coverage.cobertura.xml encontrado." }
-          New-Item -ItemType Directory -Path coverage-report -Force | Out-Null
-          Copy-Item $coverage.FullName coverage-report/coverage.cobertura.xml -Force
-
-      - name: Forçar <source> como raiz do repo
-        shell: pwsh
-        run: |
-          (Get-Content coverage-report/coverage.cobertura.xml) -replace '<source>.*</source>', '<source>.</source>' | Set-Content coverage-report/coverage.cobertura.xml
-
-      - name: Corrigir paths Cobertura para SonarCloud
-        shell: pwsh
-        run: |
-          $coverageXml = "coverage-report/coverage.cobertura.xml"
-          $rootDir = [System.IO.Directory]::GetCurrentDirectory()
-          if (!$rootDir.EndsWith("")) { $rootDir += "" }
-          $allCsFiles = Get-ChildItem -Path . -Recurse -Filter *.cs | Where-Object {
-              $_.FullName -notlike "*\bin\*" -and
-              $_.FullName -notlike "*\obj\*" -and
-              $_.FullName -notlike "*coverage-report*" -and
-              $_.FullName -notlike "*coverage-html*"
-          }
-          [xml]$xml = Get-Content $coverageXml
-          foreach ($cls in $xml.coverage.packages.package.classes.class) {
-              $classFile = Split-Path $cls.filename -Leaf
-              $matches = $allCsFiles | Where-Object { $_.Name -eq $classFile }
-              if ($matches.Count -eq 1) {
-                  $fullName = $matches[0].FullName
-                  $relativePath = $fullName.Substring($rootDir.Length).Replace('\','/')
-                  if ($relativePath.StartsWith('/')) { $relativePath = $relativePath.Substring(1) }
-                  $cls.filename = $relativePath
-              }
-          }
-          $xml.Save($coverageXml)
-
-      - name: Debug arquivos fonte reais
-        shell: pwsh
-        run: |
-          Write-Host "Arquivos C# sob . (runner):"
-          Get-ChildItem -Path . -Recurse -Include "*.cs" | ForEach-Object { $_.FullName }
-
-      - name: Debug consolidated coverage
-        shell: pwsh
-        run: |
-          Write-Host 'Arquivos em coverage-report:'
-          Get-ChildItem -Path coverage-report
-          Write-Host 'Início do conteúdo do coverage.cobertura.xml:'
-          Get-Content coverage-report/coverage.cobertura.xml -First 30
-
-      - name: Gerar HTML coverage para debug manual
-        run: reportgenerator -reports:"coverage-report/coverage.cobertura.xml" -targetdir:coverage-html
-
-      - name: Salvar artifact coverage-html
-        uses: actions/upload-artifact@v4
-        with:
-          name: cobertura-html
-          path: coverage-html
-
-      - name: Listar paths reais dos .cs (Diagnóstico Matching Cobertura)
-        shell: pwsh
-        run: |
-          Write-Host "Arquivos C# reais:"
-          Get-ChildItem -Path . -Recurse -Include *.cs | Select-Object FullName
-          Write-Host "Início do XML da cobertura:"
-          Get-Content coverage-report/coverage.cobertura.xml -First 40
-
-      - name: End SonarCloud analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-
-  build-and-deploy:
-    needs: [sonarcloud-analyze]
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Necessário para análise de branches/pull requests
 
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
 
-      - name: Clean build outputs
-        run: dotnet clean --runtime win-x64
+    - name: Install SonarScanner
+      run: dotnet tool install --global dotnet-sonarscanner
 
-      - name: Restore dependências
-        run: dotnet restore --runtime win-x64
+    - name: Install Coverlet
+      run: dotnet add Solidariza.Tests/Solidariza.Tests.csproj package coverlet.msbuild
 
-      - name: Build (win-x64)
-        run: dotnet build ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --no-restore
+    - name: Restore dependencies
+      run: dotnet restore solidarizaAPI.sln
 
-      - name: Testes
-        run: dotnet test ./Solidariza/Solidariza.csproj --configuration Release --runtime win-x64 --no-build --verbosity normal
+    - name: Begin SonarCloud analysis
+      run: |
+        dotnet sonarscanner begin \
+          /k:"SabineSantos21_solidarizaAPI" \
+          /o:"sabinesantos21" \
+          /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+          /d:sonar.host.url="https://sonarcloud.io" \
+          /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/**/coverage.cobertura.xml,coverage/**/coverage.cobertura.xml" \
+          /d:sonar.exclusions="**/obj/**,**/bin/**"
 
-      - name: Publish (self-contained para Windows 64 bits)
-        run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --output ./publish
+    - name: Build
+      run: dotnet build solidarizaAPI.sln --configuration Release --no-restore
 
-      - name: Verifique se DLL base está publicada
-        run: find ./publish -name 'System.Private.CoreLib.dll' || true
+    - name: Run tests with coverage
+      run: |
+        dotnet test Solidariza.Tests/Solidariza.Tests.csproj \
+          --no-restore \
+          /p:CollectCoverage=true \
+          /p:CoverletOutputFormat=cobertura \
+          /p:CoverletOutput=TestResults/coverage.cobertura.xml
 
-      - name: Listar arquivos publicados
-        run: ls -lh ./publish
-
-      - name: Procurar DLLs base (corelib, threading, hostfxr)
-        run: |
-          find ./publish -name 'System.Private.CoreLib.dll'
-          find ./publish -name 'System.Threading.dll'
-          find ./publish -name 'hostfxr.dll'
-          find ./publish -name 'hostpolicy.dll'
-
-      - name: Limpar wwwroot via Kudu API
-        if: github.ref == 'refs/heads/master'
-        env:
-          PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        run: |
-          user=$(echo "$PUBLISH_PROFILE" | grep -oP '(?<=userName=")[^"]+')
-          pass=$(echo "$PUBLISH_PROFILE" | grep -oP '(?<=userPWD=")[^"]+')
-          curl -i -u "$user:$pass" -X DELETE "https://solidarizaapi-cnbqcwduhta9bdbm.centralus-01.azurewebsites.net/api/vfs/site/wwwroot/"
-          sleep 5
-
-      - name: Deploy para Azure Web App
-        if: github.ref == 'refs/heads/master'
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'SolidarizaAPI'
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./publish
-          clean: true
+    - name: End SonarCloud analysis
+      run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
