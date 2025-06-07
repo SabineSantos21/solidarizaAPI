@@ -32,6 +32,7 @@ jobs:
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_COVERAGE_PATH: TestResults/coverage.cobertura.xml  # Valor padrão, será sobrescrito
         run: |
           dotnet sonarscanner begin `
             /k:"SabineSantos21_solidarizaAPI" `
@@ -39,7 +40,7 @@ jobs:
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
             /d:sonar.cs.xunit.reportsPaths="TestResults/results.trx" `
-            /d:sonar.coverageReportPaths="TestResults/coverage.cobertura.xml" `
+            /d:sonar.coverageReportPaths="${{ env.SONAR_COVERAGE_PATH }}" `
             /d:sonar.exclusions="**/bin/**,**/obj/**" `
             /d:sonar.coverage.exclusions="**/Program.cs,**/Startup.cs"
 
@@ -57,16 +58,27 @@ jobs:
             /p:CollectCoverage=true `
             /p:CoverletOutputFormat=cobertura
 
+      - name: List all files in TestResults (to find coverage files)
+        shell: pwsh
+        run: Get-ChildItem -Path TestResults -Recurse | Select-Object FullName,Length | Format-Table -AutoSize
+
+      - name: Find latest cobertura coverage file and set environment variable
+        id: find_coverage
+        shell: pwsh
+        run: |
+          $file = Get-ChildItem -Path TestResults -Recurse -Filter '*.cobertura.xml' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if ($file -ne $null) {
+            Write-Host "Found coverage file at: $($file.FullName)"
+            echo "##vso[task.setvariable variable=SONAR_COVERAGE_PATH]$($file.FullName)"
+          } else {
+            Write-Error "Arquivo cobertura.xml não encontrado!"
+            exit 1
+          }
+
       - name: Copy coverage report to root TestResults
         shell: pwsh
         run: |
-          $coverageFile = Get-ChildItem -Path TestResults -Recurse -Filter 'coverage.cobertura.xml' | Select-Object -First 1
-          if ($coverageFile -ne $null) {
-            Copy-Item $coverageFile.FullName -Destination TestResults/coverage.cobertura.xml -Force
-          } else {
-            Write-Error "Arquivo coverage.cobertura.xml não encontrado!"
-            exit 1
-          }
+          Copy-Item $Env:SONAR_COVERAGE_PATH -Destination TestResults/coverage.cobertura.xml -Force
 
       - name: List TestResults contents (debug)
         shell: pwsh
