@@ -3,7 +3,7 @@ name: CI/CD .NET Core App para Azure WebApp
 on:
   push:
     branches:
-      - main        # deploy produção
+      - master        # deploy produção
       - develop     # build, testes, sonar
       - 'feature/**' # build, testes, sonar
       - 'release/**' # build, testes, sonar, deploy homolog
@@ -11,7 +11,7 @@ on:
 jobs:
   sonarcloud-analyze:
     runs-on: windows-latest
-    if: github.ref != 'refs/heads/main' # skip sonar em main, já testou antes
+    if: github.ref != 'refs/heads/master' # skip sonar em master, já testou antes
 
     steps:
       - name: Set up JDK 17
