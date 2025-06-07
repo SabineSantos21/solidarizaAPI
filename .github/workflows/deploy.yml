@@ -64,33 +64,19 @@ jobs:
       - name: Build solution
         run: dotnet build --no-restore --no-incremental
 
-      - name: Test with code coverage
+      - name: Test with coverage
         run: >
           dotnet test Solidariza.sln --no-build --verbosity normal --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
-
-      - name: Localizar arquivos de cobertura
-        shell: pwsh
-        run: |
-          Write-Host "Procurando coverage.cobertura.xml no projeto..."
-          $files = Get-ChildItem -Path . -Recurse -Filter "coverage.cobertura.xml"
-          if ($files) {
-            $files | Select-Object -ExpandProperty FullName
-          } else {
-            Write-Warning "Nenhum arquivo de cobertura encontrado!"
-          }
-
-      - name: Instalar ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
       - name: Consolidar Cobertura
         shell: pwsh
         run: |
-          $coverage = Get-ChildItem -Path . -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
+          $coverage = Get-ChildItem -Path . -Recurse -Filter "coverage.cobertura.xml" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
           if ($null -eq $coverage) { Write-Error "Nenhum coverage.cobertura.xml encontrado." }
           New-Item -ItemType Directory -Path coverage-report -Force | Out-Null
           Copy-Item $coverage.FullName coverage-report/coverage.cobertura.xml -Force
 
-      - name: Corrigir Cobertura para SonarCloud (ajusta source e paths relativos)
+      - name: Corrigir paths de cobertura para SonarCloud
         shell: pwsh
         run: |
           $coverageXml = "coverage-report/coverage.cobertura.xml"
@@ -104,20 +90,17 @@ jobs:
           }
           [xml]$xml = Get-Content $coverageXml
           foreach ($cls in $xml.coverage.packages.package.classes.class) {
-              $classFile = Split-Path $cls.filename -Leaf
-              $matches = $allCsFiles | Where-Object { $_.Name -eq $classFile }
-              if ($matches.Count -eq 1) {
-                  $fullName = $matches[0].FullName
-                  $relativePath = $fullName.Substring($rootDir.Length).Replace('\','/')
-                  if ($relativePath.StartsWith('/')) { $relativePath = $relativePath.Substring(1) }
-                  $cls.filename = $relativePath
+              $found = $allCsFiles | Where-Object { $_.Name -eq (Split-Path $cls.filename -Leaf) }
+              if ($found.Count -eq 1) {
+                  $relative = $found[0].FullName.Substring($rootDir.Length).Replace('\','/')
+                  if ($relative.StartsWith('/')) { $relative = $relative.Substring(1) }
+                  $cls.filename = $relative
               }
           }
-          # Força source como ponto
           $xml.coverage.sources.source = "."
           $xml.Save($coverageXml)
 
-      - name: Debug arquivos fonte reais
+      - name: Debug arquivos fonte e Coverage
         shell: pwsh
         run: |
           Write-Host "Arquivos C# sob . (runner):"
@@ -128,10 +111,10 @@ jobs:
       - name: Gerar HTML coverage para debug manual
         run: reportgenerator -reports:"coverage-report/coverage.cobertura.xml" -targetdir:coverage-html
 
-      - name: Salvar artifact cobertura-html
+      - name: Salvar artifact coverage-html
         uses: actions/upload-artifact@v4
         with:
-          name: cobertura-html
+          name: coverage-html
           path: coverage-html
 
       - name: End SonarCloud analysis
@@ -166,19 +149,6 @@ jobs:
 
       - name: Publish (self-contained para Windows 64 bits)
         run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --output ./publish
-
-      - name: Verifique se DLL base está publicada
-        run: find ./publish -name 'System.Private.CoreLib.dll' || true
-
-      - name: Listar arquivos publicados
-        run: ls -lh ./publish
-
-      - name: Procurar DLLs base (corelib, threading, hostfxr)
-        run: |
-          find ./publish -name 'System.Private.CoreLib.dll'
-          find ./publish -name 'System.Threading.dll'
-          find ./publish -name 'hostfxr.dll'
-          find ./publish -name 'hostpolicy.dll'
 
       - name: Limpar wwwroot via Kudu API
         if: github.ref == 'refs/heads/master'
