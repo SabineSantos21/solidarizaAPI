@@ -13,15 +13,17 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Importante para SonarCloud obter histórico de vcs
+          fetch-depth: 0
+      
+      - name: Instalar .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-      - name: Instalar .NET
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 6.0.x  # Altere se usar outra versão do .NET
+      - name: Verificar versão do .NET
+        run: dotnet --version
 
       - name: Restaurar dependências
         run: dotnet restore
