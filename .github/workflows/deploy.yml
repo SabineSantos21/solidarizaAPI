@@ -1,14 +1,15 @@
-name: Build and Analyze
+name: CI with SonarCloud
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - master
+      - develop
+      - 'feature/**'
+      - 'release/**'
 
 jobs:
-  build:
-    name: Build and Analyze
+  sonarcloud-analyze:
     runs-on: windows-latest
 
     steps:
@@ -36,10 +37,6 @@ jobs:
         run: |
           dotnet tool install --global dotnet-reportgenerator-globaltool
           reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage-report -reporttypes:Cobertura
-      
-      - name: Verifique arquivos de cobertura
-        run: |
-          dir /s /b TestResults
 
       - name: End SonarCloud analysis
         run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
