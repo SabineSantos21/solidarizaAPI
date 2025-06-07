@@ -9,14 +9,12 @@ on:
       - 'release/**'
 
 jobs:
-  sonarcloud-analyze:
+  build:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout source code
+      - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -33,22 +31,21 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          dotnet sonarscanner begin `
-            /k:"SabineSantos21_solidarizaAPI" `
-            /o:"sabinesantos21" `
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
-            /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.xunit.reportsPaths="TestResults/results.trx" `
-            /d:sonar.coverageReportPaths="TestResults/coverage.opencover.xml" `
-            /d:sonar.exclusions="**/bin/**,**/obj/**" `
+          dotnet sonarscanner begin ^
+            /k:"SabineSantos21_solidarizaAPI" ^
+            /o:"sabinesantos21" ^
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" ^
+            /d:sonar.host.url="https://sonarcloud.io" ^
+            /d:sonar.cs.xunit.reportsPaths="TestResults/results.trx" ^
+            /d:sonar.coverageReportPaths="TestResults/coverage.opencover.xml" ^
+            /d:sonar.exclusions="**/bin/**,**/obj/**" ^
             /d:sonar.coverage.exclusions="**/Program.cs,**/Startup.cs"
 
       - name: Build solution
         run: dotnet build --no-restore --configuration Release
 
-      - name: Run tests with code coverage (OpenCover)
+      - name: Run tests and collect coverage
         run: |
-          mkdir -p TestResults
           dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
             --no-build `
             --configuration Release `
@@ -58,23 +55,11 @@ jobs:
             /p:CoverletOutputFormat=opencover `
             /p:CoverletOutput=TestResults/coverage.opencover.xml
 
-      - name: List TestResults folder contents after tests
+      - name: Check TestResults folder
         shell: pwsh
         run: |
           Write-Host "Arquivos na pasta TestResults:"
           Get-ChildItem -Path TestResults -Recurse | Select-Object FullName,Length | Format-Table -AutoSize
-
-      - name: Copy coverage report to root TestResults
-        shell: pwsh
-        run: |
-          $coverageFile = Get-ChildItem -Path TestResults -Recurse -Filter 'coverage.opencover.xml' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-          if ($coverageFile -ne $null) {
-            Write-Host "Found coverage file at: $($coverageFile.FullName)"
-            Copy-Item $coverageFile.FullName -Destination TestResults/coverage.opencover.xml -Force
-          } else {
-            Write-Error "Arquivo coverage.opencover.xml não encontrado!"
-            exit 1
-          }
 
       - name: End SonarCloud analysis
         env:
