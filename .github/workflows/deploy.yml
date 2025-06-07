@@ -1,4 +1,4 @@
-name: .NET 8 CI with SonarCloud
+name: .NET 8 CI with SonarCloud and Coverlet
 
 on:
   push:
@@ -24,23 +24,21 @@ jobs:
         with:
           dotnet-version: '8.x'
 
-      - name: Install dotnet-coverage
-        run: dotnet tool install --global dotnet-coverage
-
-      - name: Install SonarScanner
-        run: dotnet tool install --global dotnet-sonarscanner
-
       - name: Restore dependencies
         run: dotnet restore
 
       - name: Begin SonarCloud analysis
-        run: dotnet sonarscanner begin /k:"${{ env.SONAR_PROJECT_KEY }}" /o:"${{ env.SONAR_ORG }}" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+        run: dotnet sonarscanner begin /k:"${{ env.SONAR_PROJECT_KEY }}" /o:"${{ env.SONAR_ORG }}" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.opencover.reportsPaths=coverage/coverage.cobertura.xml
 
       - name: Build
         run: dotnet build --no-incremental --configuration Release
 
-      - name: Run tests and collect coverage
-        run: dotnet-coverage collect 'dotnet test --no-build --verbosity normal' -f xml -o 'coverage.xml'
+      - name: Test with coverage
+        run: dotnet test --settings coverlet.runsettings --collect:"XPlat Code Coverage" --results-directory coverage
+
+      - name: Move coverage result
+        run: |
+          mv $(find coverage -name 'coverage.cobertura.xml' | head -n 1) coverage/coverage.cobertura.xml
 
       - name: End SonarCloud analysis
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
