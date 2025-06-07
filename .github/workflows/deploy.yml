@@ -38,8 +38,8 @@ jobs:
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.xunit.reportsPaths=TestResults/results.trx `
-            /d:sonar.coverageReportPaths=TestResults/coverage.xml `
+            /d:sonar.cs.xunit.reportsPaths="TestResults/results.trx" `
+            /d:sonar.coverageReportPaths="TestResults/coverage.xml" `
             /d:sonar.exclusions="**/bin/**,**/obj/**" `
             /d:sonar.coverage.exclusions="**/Program.cs,**/Startup.cs"
 
@@ -48,14 +48,19 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          mkdir -p TestResults
+          mkdir TestResults
           dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
             --no-build `
             --configuration Release `
             /p:CollectCoverage=true `
-            /p:CoverletOutput=TestResults/coverage.xml `
+            /p:CoverletOutput=TestResults/ `
             /p:CoverletOutputFormat=cobertura `
-            --logger "trx;LogFileName=TestResults/results.trx"
+            --logger "trx;LogFileName=results.trx"
+
+      - name: Rename coverage output to expected filename
+        run: |
+          $coverage = Get-ChildItem -Recurse -Filter 'coverage.cobertura.xml' | Select-Object -First 1
+          Move-Item $coverage.FullName TestResults/coverage.xml
 
       - name: End SonarCloud analysis
         env:
