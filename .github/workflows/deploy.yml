@@ -55,19 +55,23 @@ jobs:
             --logger "trx;LogFileName=results.trx" `
             --results-directory TestResults `
             /p:CollectCoverage=true `
-            /p:CoverletOutput=TestResults/coverage.opencover.xml `
-            /p:CoverletOutputFormat=opencover
+            /p:CoverletOutput=TestResults/coverage.cobertura.xml `
+            /p:CoverletOutputFormat=cobertura
 
       - name: Copy coverage report to root TestResults
+        shell: pwsh
         run: |
           $coverageFile = Get-ChildItem -Path TestResults -Recurse -Filter 'coverage.cobertura.xml' | Select-Object -First 1
-          Copy-Item $coverageFile.FullName -Destination TestResults/coverage.cobertura.xml -Force
-        shell: pwsh
+          if ($coverageFile -ne $null) {
+            Copy-Item $coverageFile.FullName -Destination TestResults/coverage.cobertura.xml -Force
+          } else {
+            Write-Error "Arquivo coverage.cobertura.xml não encontrado!"
+            exit 1
+          }
 
       - name: List TestResults contents (debug)
-        run: Get-ChildItem -Recurse ./TestResults
         shell: pwsh
-
+        run: Get-ChildItem -Recurse ./TestResults
 
       - name: End SonarCloud analysis
         env:
