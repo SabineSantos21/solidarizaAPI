@@ -30,16 +30,16 @@ jobs:
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          dotnet sonarscanner begin ^
-            /k:"SabineSantos21_solidarizaAPI" ^
-            /o:"sabinesantos21" ^
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" ^
-            /d:sonar.host.url="https://sonarcloud.io" ^
-            /d:sonar.cs.xunit.reportsPaths="TestResults/results.trx" ^
-            /d:sonar.coverageReportPaths="TestResults/coverage.opencover.xml" ^
-            /d:sonar.exclusions="**/bin/**,**/obj/**" ^
-            /d:sonar.coverage.exclusions="**/Program.cs,**/Startup.cs"
+        run: >
+          dotnet sonarscanner begin
+          /k:"SabineSantos21_solidarizaAPI"
+          /o:"sabinesantos21"
+          /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          /d:sonar.host.url="https://sonarcloud.io"
+          /d:sonar.cs.xunit.reportsPaths="TestResults/results.trx"
+          /d:sonar.coverageReportPaths="TestResults/coverage.opencover.xml"
+          /d:sonar.exclusions="**/bin/**,**/obj/**"
+          /d:sonar.coverage.exclusions="**/Program.cs,**/Startup.cs"
 
       - name: Build solution
         run: dotnet build --no-restore --configuration Release
