@@ -29,7 +29,11 @@ jobs:
         run: dotnet tool install --global dotnet-sonarscanner
 
       - name: SonarCloud Begin Analysis
-        run: dotnet sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.cobertura.reportsPaths="coverage.cobertura.xml" /d:sonar.sourceEncoding="UTF-8"
+        shell: pwsh
+        run: |
+          $SONAR_COVERAGE="$env:GITHUB_WORKSPACE/coverage.cobertura.xml"
+          Write-Host "Sonar Cobertura path: $SONAR_COVERAGE"
+          dotnet sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.cobertura.reportsPaths="$SONAR_COVERAGE" /d:sonar.sourceEncoding="UTF-8"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
