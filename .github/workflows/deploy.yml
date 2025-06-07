@@ -26,38 +26,49 @@ jobs:
         run: dotnet --version
 
       - name: Instalar SonarScanner
-        run: dotnet tool install --global dotnet-sonarscanner
+          run: dotnet tool install --global dotnet-sonarscanner
 
-      - name: SonarCloud Begin Analysis
+      - name: SonarCloud Begin
         run: |
           dotnet sonarscanner begin `
             /k:"SabineSantos21_solidarizaAPI" `
             /o:"sabinesantos21" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.cobertura.reportsPaths="coverage.cobertura.xml" `
-            /d:sonar.sourceEncoding="UTF-8"
+            /d:sonar.cs.cobertura.reportsPaths="coverage.cobertura.xml"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      - name: Restaurar dependências (pós-begin)
+      - name: dotnet restore
         run: dotnet restore
 
-      - name: Build para análise SonarCloud
+      - name: dotnet build
         run: dotnet build --no-restore
 
-      - name: Executar testes com cobertura
-        run: dotnet test --no-build --collect:"XPlat Code Coverage" --logger trx --results-directory TestResults
+      - name: dotnet test com cobertura
+        run: dotnet test --no-build --collect:"XPlat Code Coverage" --logger trx
 
-      - name: Copiar cobertura para a raiz
+      - name: Listar arquivos de cobertura
+        shell: pwsh
+        run: Get-ChildItem -Recurse -File | Where-Object {$_.Name -match "coverage.cobertura.xml"} | Select-Object FullName
+
+      - name: Copiar cobertura para a raiz do projeto
         shell: pwsh
         run: |
-          $report = Get-ChildItem -Recurse -Filter 'coverage.cobertura.xml' | Select-Object -First 1
-          if ($null -ne $report) {
-            Copy-Item $report.FullName ./coverage.cobertura.xml -Force
+          $report = Get-ChildItem -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
+          Write-Host "Arquivo encontrado: $($report.FullName)"
+          Copy-Item $report.FullName $env:GITHUB_WORKSPACE/coverage.cobertura.xml -Force
+
+      - name: Listar arquivo na raiz após cópia
+        shell: pwsh
+        run: |
+          if ((Test-Path "coverage.cobertura.xml")) {
+            Get-Content "coverage.cobertura.xml" -First 15
+          } else {
+            Write-Host "Arquivo coverage.cobertura.xml não encontrado na raiz!"
           }
 
-      - name: SonarCloud End Analysis
+      - name: SonarCloud End
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
