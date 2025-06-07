@@ -54,7 +54,9 @@ jobs:
             --configuration Release `
             --logger "trx;LogFileName=results.trx" `
             --results-directory TestResults `
-            --collect:"XPlat Code Coverage"
+            /p:CollectCoverage=true `
+            /p:CoverletOutput=TestResults/coverage.opencover.xml `
+            /p:CoverletOutputFormat=opencover
 
       - name: Copy coverage report to root TestResults
         run: |
