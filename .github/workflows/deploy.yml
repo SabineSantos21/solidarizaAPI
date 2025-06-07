@@ -1,59 +1,46 @@
-name: CI with SonarCloud
+name: .NET 8 CI with SonarCloud
 
 on:
   push:
     branches:
       - master
-      - develop
-      - 'feature/**'
-      - 'release/**'
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  SONAR_PROJECT_KEY: SabineSantos21_solidarizaAPI
+  SONAR_ORG: sabinesantos21
 
 jobs:
   build:
-    runs-on: windows-latest
-
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Instalar .NET 8
+      - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '8.x'
 
-      - name: Verificar versão do .NET
-        run: dotnet --version
+      - name: Install dotnet-coverage
+        run: dotnet tool install --global dotnet-coverage
 
-      - name: Instalar SonarScanner
+      - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
 
-      - name: SonarCloud Begin Analysis
-        shell: pwsh
-        run: |
-          $SONAR_COVERAGE="$env:GITHUB_WORKSPACE/coverage.cobertura.xml"
-          Write-Host "Sonar Cobertura path: $SONAR_COVERAGE"
-          dotnet sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.cobertura.reportsPaths="$SONAR_COVERAGE" /d:sonar.sourceEncoding="UTF-8"
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Restaurar dependências (pós-begin)
+      - name: Restore dependencies
         run: dotnet restore
 
-      - name: Build para análise SonarCloud
-        run: dotnet build --no-restore
+      - name: Begin SonarCloud analysis
+        run: dotnet sonarscanner begin /k:"${{ env.SONAR_PROJECT_KEY }}" /o:"${{ env.SONAR_ORG }}" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
 
-      - name: Executar testes com cobertura
-        run: dotnet test --no-build --collect:"XPlat Code Coverage" --logger trx
+      - name: Build
+        run: dotnet build --no-incremental --configuration Release
 
-      - name: Copiar cobertura para a raiz do projeto
-        shell: pwsh
-        run: |
-          $report = Get-ChildItem -Recurse -Filter "coverage.cobertura.xml" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-          Write-Host "Arquivo encontrado: $($report.FullName)"
-          Copy-Item $report.FullName $env:GITHUB_WORKSPACE/coverage.cobertura.xml -Force
+      - name: Run tests and collect coverage
+        run: dotnet-coverage collect 'dotnet test --no-build --verbosity normal' -f xml -o 'coverage.xml'
 
-      - name: SonarCloud End Analysis
+      - name: End SonarCloud analysis
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
