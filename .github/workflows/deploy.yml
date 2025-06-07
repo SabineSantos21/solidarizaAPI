@@ -65,7 +65,8 @@ jobs:
         run: dotnet build --no-restore --no-incremental
 
       - name: Test with code coverage
-        run: dotnet test Solidariza.sln --no-build --verbosity normal --collect:"XPlat Code Coverage"
+        run: >
+          dotnet test Solidariza.sln --no-build --verbosity normal --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
 
       - name: Localizar arquivos de cobertura
         shell: pwsh
@@ -89,10 +90,12 @@ jobs:
           New-Item -ItemType Directory -Path coverage-report -Force | Out-Null
           Copy-Item $coverage.FullName coverage-report/coverage.cobertura.xml -Force
 
-      - name: Ajustar <sources> do Cobertura
+      - name: Forçar <source> como raiz do repo e normalizar path de arquivo
         shell: pwsh
         run: |
           (Get-Content coverage-report/coverage.cobertura.xml) -replace '<source>.*</source>', '<source>.</source>' | Set-Content coverage-report/coverage.cobertura.xml
+          # Normaliza qualquer path tipo Solidariza\Services\X.cs para só Services\X.cs
+          (Get-Content coverage-report/coverage.cobertura.xml) -replace 'filename="(?:.*?Solidariza[\/])([^"]+)"', 'filename="$1"' | Set-Content coverage-report/coverage.cobertura.xml
 
       - name: Debug arquivos fonte reais
         shell: pwsh
