@@ -93,8 +93,8 @@ jobs:
       - name: Forçar <source> como raiz do repo e normalizar path de arquivo
         shell: pwsh
         run: |
+          # Garante que o <source> é raiz e filename está SEM prefixo Solidariza/
           (Get-Content coverage-report/coverage.cobertura.xml) -replace '<source>.*</source>', '<source>.</source>' | Set-Content coverage-report/coverage.cobertura.xml
-          # Normaliza qualquer path tipo Solidariza\Services\X.cs para só Services\X.cs
           (Get-Content coverage-report/coverage.cobertura.xml) -replace 'filename="(?:.*?Solidariza[\/])([^"]+)"', 'filename="$1"' | Set-Content coverage-report/coverage.cobertura.xml
 
       - name: Debug arquivos fonte reais
@@ -110,6 +110,15 @@ jobs:
           Get-ChildItem -Path coverage-report
           Write-Host 'Início do conteúdo do coverage.cobertura.xml:'
           Get-Content coverage-report/coverage.cobertura.xml -First 30
+
+      - name: Gerar HTML coverage para debug manual
+        run: reportgenerator -reports:"coverage-report/coverage.cobertura.xml" -targetdir:coverage-html
+
+      - name: Salvar artifact coverage-html
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-html
+          path: coverage-html
 
       - name: End SonarCloud analysis
         env:
