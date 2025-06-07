@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # evita shallow clone
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -29,12 +31,13 @@ jobs:
 
       - name: Run tests with coverage
         run: |
+          mkdir -p TestResults
           dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
             --no-build `
             --configuration Release `
             /p:CollectCoverage=true `
             /p:CoverletOutputFormat=cobertura `
-            /p:CoverletOutput=../TestResults/coverage.xml `
+            /p:CoverletOutput=TestResults/coverage.xml `
             --logger "trx;LogFileName=TestResults/results.trx"
 
       - name: Install SonarScanner
@@ -47,14 +50,13 @@ jobs:
           dotnet sonarscanner begin `
             /k:"SabineSantos21_solidarizaAPI" `
             /o:"sabinesantos21" `
-            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" `
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.sources="Solidariza" `
-            /d:sonar.tests="Solidariza.Tests" `
             /d:sonar.cs.xunit.reportsPaths=TestResults/results.trx `
             /d:sonar.cs.vscoveragexml.reportsPaths=TestResults/coverage.xml `
             /d:sonar.exclusions="**/bin/**,**/obj/**" `
-            /d:sonar.coverage.exclusions="**/Program.cs,**/Startup.cs"
+            /d:sonar.coverage.exclusions="**/Program.cs,**/Startup.cs" `
+            /d:sonar.scanner.scanAll=false
 
       - name: Rebuild solution for analysis
         run: dotnet build --no-restore --configuration Release
@@ -62,4 +64,4 @@ jobs:
       - name: End SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
