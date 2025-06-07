@@ -49,20 +49,20 @@ jobs:
         run: dotnet restore Solidariza.sln
 
       - name: Begin SonarCloud analysis
-        run: dotnet sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/**/coverage.cobertura.xml,**/coverage/**/coverage.cobertura.xml" /d:sonar.cs.xunit.reportsPaths="TestResults/results.trx" /d:sonar.exclusions="**/obj/**,**/bin/**" /d:sonar.scm.disabled=true
+        run: dotnet sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths="Solidariza.Tests/TestResults/coverage.cobertura.xml" /d:sonar.cs.xunit.reportsPaths="Solidariza.Tests/TestResults/results.trx" /d:sonar.exclusions="**/obj/**,**/bin/**" /d:sonar.scm.disabled=true /d:sonar.verbose=true
 
       - name: Build
         run: dotnet build Solidariza.sln --configuration Release --no-restore
 
       - name: Run tests with coverage
-        run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-restore /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=TestResults/coverage.cobertura.xml --logger "trx;LogFileName=TestResults/results.trx"
+        run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-restore /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=Solidariza.Tests/TestResults/coverage.cobertura.xml --logger "trx;LogFileName=Solidariza.Tests/TestResults/results.trx"
 
       - name: List coverage files
         run: dir /s /b coverage.cobertura.xml
         shell: cmd
 
       - name: Inspect coverage files
-        run: for %f in (coverage.cobertura.xml) do type "%~dpnxf"
+        run: for %%f in (coverage.cobertura.xml) do type "%%f"
         shell: cmd
         continue-on-error: true
 
