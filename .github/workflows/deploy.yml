@@ -57,11 +57,6 @@ jobs:
             /p:CoverletOutputFormat=opencover `
             --logger "trx;LogFileName=results.trx"
 
-      - name: Rename coverage output to expected filename
-        run: |
-          $coverage = Get-ChildItem -Recurse -Filter 'coverage.cobertura.xml' | Select-Object -First 1
-          Move-Item $coverage.FullName TestResults/coverage.xml
-
       - name: End SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
