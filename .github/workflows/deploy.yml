@@ -143,6 +143,14 @@ jobs:
           name: cobertura-html
           path: coverage-html
 
+      - name: Listar paths reais dos .cs (Diagnóstico Matching Cobertura)
+        shell: pwsh
+        run: |
+          Write-Host "Arquivos C# reais:"
+          Get-ChildItem -Path . -Recurse -Include *.cs | Select-Object FullName
+          Write-Host "Início do XML da cobertura:"
+          Get-Content coverage-report/coverage.cobertura.xml -First 40
+
       - name: End SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
