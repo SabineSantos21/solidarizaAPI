@@ -39,7 +39,7 @@ jobs:
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
             /d:sonar.cs.xunit.reportsPaths="TestResults/results.trx" `
-            /d:sonar.coverageReportPaths="TestResults/coverage.xml" `
+            /d:sonar.coverageReportPaths="TestResults/coverage.opencover.xml" `
             /d:sonar.exclusions="**/bin/**,**/obj/**" `
             /d:sonar.coverage.exclusions="**/Program.cs,**/Startup.cs"
 
@@ -53,8 +53,8 @@ jobs:
             --no-build `
             --configuration Release `
             /p:CollectCoverage=true `
-            /p:CoverletOutput=TestResults/ `
-            /p:CoverletOutputFormat=cobertura `
+            /p:CoverletOutput=TestResults/coverage.opencover.xml `
+            /p:CoverletOutputFormat=opencover `
             --logger "trx;LogFileName=results.trx"
 
       - name: Rename coverage output to expected filename
