@@ -46,7 +46,7 @@ jobs:
           New-Item -Path .\.sonar\scanner -ItemType Directory -Force
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
 
-      - name: Begin SonarCloud analysis (verbose)
+      - name: Begin SonarCloud analysis (verbose + exclusões)
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
@@ -56,7 +56,8 @@ jobs:
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
             /d:sonar.cs.cobertura.reportsPaths="coverage-report/coverage.cobertura.xml" `
-            /d:sonar.verbose=true
+            /d:sonar.verbose=true `
+            /d:sonar.exclusions="**/bin/**,**/obj/**,coverage-report/**,coverage-html/**"
 
       - name: Restore dependencies
         run: dotnet restore
@@ -90,12 +91,32 @@ jobs:
           New-Item -ItemType Directory -Path coverage-report -Force | Out-Null
           Copy-Item $coverage.FullName coverage-report/coverage.cobertura.xml -Force
 
-      - name: Forçar <source> como raiz do repo e normalizar path de arquivo
+      - name: Forçar <source> como raiz do repo
         shell: pwsh
         run: |
-          # Garante que o <source> é raiz e filename está SEM prefixo Solidariza/
           (Get-Content coverage-report/coverage.cobertura.xml) -replace '<source>.*</source>', '<source>.</source>' | Set-Content coverage-report/coverage.cobertura.xml
-          (Get-Content coverage-report/coverage.cobertura.xml) -replace 'filename="(?:.*?Solidariza[\/])([^"]+)"', 'filename="$1"' | Set-Content coverage-report/coverage.cobertura.xml
+
+      - name: Corrigir paths Cobertura para SonarCloud
+        shell: pwsh
+        run: |
+          $coverageXml = "coverage-report/coverage.cobertura.xml"
+          $allCsFiles = Get-ChildItem -Path . -Recurse -Filter *.cs |
+            Where-Object {
+                $_.FullName -notmatch '\bin\' -and `
+                $_.FullName -notmatch '\obj\' -and `
+                $_.FullName -notmatch 'coverage-report' -and `
+                $_.FullName -notmatch 'coverage-html'
+            }
+          [xml]$xml = Get-Content $coverageXml
+          foreach ($cls in $xml.coverage.packages.package.classes.class) {
+              $classFile = Split-Path $cls.filename -Leaf
+              $matches = $allCsFiles | Where-Object { $_.Name -eq $classFile }
+              if ($matches.Count -eq 1) {
+                  $relativePath = $matches.FullName.Replace("$PWD", "").Replace("", "/")
+                  $cls.filename = $relativePath
+              }
+          }
+          $xml.Save($coverageXml)
 
       - name: Debug arquivos fonte reais
         shell: pwsh
