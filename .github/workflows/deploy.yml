@@ -35,7 +35,7 @@ jobs:
             /p:CollectCoverage=true `
             /p:CoverletOutputFormat=cobertura `
             /p:CoverletOutput=../TestResults/coverage.xml `
-            /logger:"trx;LogFileName=TestResults/results.trx"
+            --logger "trx;LogFileName=TestResults/results.trx"
 
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
