@@ -46,7 +46,7 @@ jobs:
           New-Item -Path .\.sonar\scanner -ItemType Directory -Force
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
 
-      - name: Begin SonarCloud analysis (verbose + exclusões)
+      - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
@@ -56,8 +56,7 @@ jobs:
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
             /d:sonar.cs.cobertura.reportsPaths="coverage-report/coverage.cobertura.xml" `
-            /d:sonar.verbose=true `
-            /d:sonar.exclusions="**/bin/**,**/obj/**,coverage-report/**,coverage-html/**"
+            /d:sonar.verbose=true
 
       - name: Restore dependencies
         run: dotnet restore
@@ -91,12 +90,7 @@ jobs:
           New-Item -ItemType Directory -Path coverage-report -Force | Out-Null
           Copy-Item $coverage.FullName coverage-report/coverage.cobertura.xml -Force
 
-      - name: Forçar <source> como raiz do repo
-        shell: pwsh
-        run: |
-          (Get-Content coverage-report/coverage.cobertura.xml) -replace '<source>.*</source>', '<source>.</source>' | Set-Content coverage-report/coverage.cobertura.xml
-
-      - name: Corrigir paths Cobertura para SonarCloud
+      - name: Corrigir Cobertura para SonarCloud (ajusta source e paths relativos)
         shell: pwsh
         run: |
           $coverageXml = "coverage-report/coverage.cobertura.xml"
@@ -119,6 +113,8 @@ jobs:
                   $cls.filename = $relativePath
               }
           }
+          # Força source como ponto
+          $xml.coverage.sources.source = "."
           $xml.Save($coverageXml)
 
       - name: Debug arquivos fonte reais
@@ -126,31 +122,17 @@ jobs:
         run: |
           Write-Host "Arquivos C# sob . (runner):"
           Get-ChildItem -Path . -Recurse -Include "*.cs" | ForEach-Object { $_.FullName }
-
-      - name: Debug consolidated coverage
-        shell: pwsh
-        run: |
-          Write-Host 'Arquivos em coverage-report:'
-          Get-ChildItem -Path coverage-report
-          Write-Host 'Início do conteúdo do coverage.cobertura.xml:'
+          Write-Host "Início do conteúdo do coverage.cobertura.xml:"
           Get-Content coverage-report/coverage.cobertura.xml -First 30
 
       - name: Gerar HTML coverage para debug manual
         run: reportgenerator -reports:"coverage-report/coverage.cobertura.xml" -targetdir:coverage-html
 
-      - name: Salvar artifact coverage-html
+      - name: Salvar artifact cobertura-html
         uses: actions/upload-artifact@v4
         with:
           name: cobertura-html
           path: coverage-html
-
-      - name: Listar paths reais dos .cs (Diagnóstico Matching Cobertura)
-        shell: pwsh
-        run: |
-          Write-Host "Arquivos C# reais:"
-          Get-ChildItem -Path . -Recurse -Include *.cs | Select-Object FullName
-          Write-Host "Início do XML da cobertura:"
-          Get-Content coverage-report/coverage.cobertura.xml -First 40
 
       - name: End SonarCloud analysis
         env:
