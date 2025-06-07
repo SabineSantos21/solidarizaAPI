@@ -1,4 +1,4 @@
-name: CI/CD .NET Core API com SonarCloud e Azure WebApp
+name: CI/CD .NET Core App para Azure WebApp
 
 on:
   push:
@@ -46,7 +46,7 @@ jobs:
           New-Item -Path .\.sonar\scanner -ItemType Directory -Force
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
 
-      - name: Begin SonarCloud analysis
+      - name: Begin SonarCloud analysis (verbose + exclusões)
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
@@ -56,7 +56,8 @@ jobs:
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
             /d:sonar.cs.cobertura.reportsPaths="coverage-report/coverage.cobertura.xml" `
-            /d:sonar.verbose=true
+            /d:sonar.verbose=true `
+            /d:sonar.exclusions="**/bin/**,**/obj/**,coverage-report/**,coverage-html/**"
 
       - name: Restore dependencies
         run: dotnet restore
@@ -64,19 +65,38 @@ jobs:
       - name: Build solution
         run: dotnet build --no-restore --no-incremental
 
-      - name: Run tests with coverage
+      - name: Test with code coverage
         run: >
           dotnet test Solidariza.sln --no-build --verbosity normal --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+
+      - name: Localizar arquivos de cobertura
+        shell: pwsh
+        run: |
+          Write-Host "Procurando coverage.cobertura.xml no projeto..."
+          $files = Get-ChildItem -Path . -Recurse -Filter "coverage.cobertura.xml"
+          if ($files) {
+            $files | Select-Object -ExpandProperty FullName
+          } else {
+            Write-Warning "Nenhum arquivo de cobertura encontrado!"
+          }
+
+      - name: Instalar ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
       - name: Consolidar Cobertura
         shell: pwsh
         run: |
-          $coverage = Get-ChildItem -Path . -Recurse -Filter "coverage.cobertura.xml" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          $coverage = Get-ChildItem -Path . -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
           if ($null -eq $coverage) { Write-Error "Nenhum coverage.cobertura.xml encontrado." }
           New-Item -ItemType Directory -Path coverage-report -Force | Out-Null
           Copy-Item $coverage.FullName coverage-report/coverage.cobertura.xml -Force
 
-      - name: Corrigir paths de cobertura para SonarCloud
+      - name: Forçar <source> como raiz do repo
+        shell: pwsh
+        run: |
+          (Get-Content coverage-report/coverage.cobertura.xml) -replace '<source>.*</source>', '<source>.</source>' | Set-Content coverage-report/coverage.cobertura.xml
+
+      - name: Corrigir paths Cobertura para SonarCloud
         shell: pwsh
         run: |
           $coverageXml = "coverage-report/coverage.cobertura.xml"
@@ -99,29 +119,38 @@ jobs:
                   $cls.filename = $relativePath
               }
           }
-          $xml.coverage.sources.source = "."
           $xml.Save($coverageXml)
 
-      - name: Instalar ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
-      - name: Adicionar tools global .NET ao PATH
+      - name: Debug arquivos fonte reais
         shell: pwsh
         run: |
-          $userProfile = $env:USERPROFILE
-          $env:PATH += ";$userProfile\.dotnet\tools"
-          [System.Environment]::SetEnvironmentVariable("PATH", $env:PATH, [System.EnvironmentVariableTarget]::Process)
+          Write-Host "Arquivos C# sob . (runner):"
+          Get-ChildItem -Path . -Recurse -Include "*.cs" | ForEach-Object { $_.FullName }
+
+      - name: Debug consolidated coverage
+        shell: pwsh
+        run: |
+          Write-Host 'Arquivos em coverage-report:'
+          Get-ChildItem -Path coverage-report
+          Write-Host 'Início do conteúdo do coverage.cobertura.xml:'
+          Get-Content coverage-report/coverage.cobertura.xml -First 30
 
       - name: Gerar HTML coverage para debug manual
-        shell: pwsh
-        run: |
-          reportgenerator -reports:"coverage-report/coverage.cobertura.xml" -targetdir:coverage-html
+        run: reportgenerator -reports:"coverage-report/coverage.cobertura.xml" -targetdir:coverage-html
 
-      - name: Salvar artifact cobertura-html
+      - name: Salvar artifact coverage-html
         uses: actions/upload-artifact@v4
         with:
           name: cobertura-html
           path: coverage-html
+
+      - name: Listar paths reais dos .cs (Diagnóstico Matching Cobertura)
+        shell: pwsh
+        run: |
+          Write-Host "Arquivos C# reais:"
+          Get-ChildItem -Path . -Recurse -Include *.cs | Select-Object FullName
+          Write-Host "Início do XML da cobertura:"
+          Get-Content coverage-report/coverage.cobertura.xml -First 40
 
       - name: End SonarCloud analysis
         env:
@@ -155,6 +184,19 @@ jobs:
 
       - name: Publish (self-contained para Windows 64 bits)
         run: dotnet publish ./Solidariza/Solidariza.csproj --configuration Release --output ./publish
+
+      - name: Verifique se DLL base está publicada
+        run: find ./publish -name 'System.Private.CoreLib.dll' || true
+
+      - name: Listar arquivos publicados
+        run: ls -lh ./publish
+
+      - name: Procurar DLLs base (corelib, threading, hostfxr)
+        run: |
+          find ./publish -name 'System.Private.CoreLib.dll'
+          find ./publish -name 'System.Threading.dll'
+          find ./publish -name 'hostfxr.dll'
+          find ./publish -name 'hostpolicy.dll'
 
       - name: Limpar wwwroot via Kudu API
         if: github.ref == 'refs/heads/master'
