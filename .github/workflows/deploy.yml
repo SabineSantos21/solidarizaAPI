@@ -27,7 +27,7 @@ jobs:
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
         with:
-          path: ~/sonar/cache
+          path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
@@ -56,6 +56,11 @@ jobs:
 
       - name: Run tests with coverage
         run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-restore /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=Solidariza.Tests/TestResults/coverage.cobertura.xml /p:UseSourceLink=true /p:CoverletOutputRelativePaths=true --logger "trx;LogFileName=Solidariza.Tests/TestResults/results.trx"
+
+      - name: Fix coverage file paths
+        run: powershell -Command "(Get-Content 'Solidariza.Tests/TestResults/coverage.cobertura.xml') -replace 'C:\\\\a\\\\solidarizaAPI\\\\solidarizaAPI\\\\Solidariza\\\\', 'Solidariza/' | Set-Content 'Solidariza.Tests/TestResults/coverage.cobertura.xml'"
+        shell: cmd
+        continue-on-error: true
 
       - name: List coverage files
         run: dir /s /b coverage.cobertura.xml
