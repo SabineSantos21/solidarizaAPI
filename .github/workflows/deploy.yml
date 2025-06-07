@@ -39,14 +39,14 @@ jobs:
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
             /d:sonar.cs.xunit.reportsPaths="TestResults/results.trx" `
-            /d:sonar.coverageReportPaths="TestResults/coverage.cobertura.xml" `
+            /d:sonar.coverageReportPaths="TestResults/coverage.opencover.xml" `
             /d:sonar.exclusions="**/bin/**,**/obj/**" `
             /d:sonar.coverage.exclusions="**/Program.cs,**/Startup.cs"
 
       - name: Build solution
         run: dotnet build --no-restore --configuration Release
 
-      - name: Run tests with code coverage (XPlat)
+      - name: Run tests with code coverage (OpenCover)
         run: |
           mkdir -p TestResults
           dotnet test Solidariza.Tests/Solidariza.Tests.csproj `
@@ -54,7 +54,9 @@ jobs:
             --configuration Release `
             --logger "trx;LogFileName=results.trx" `
             --results-directory TestResults `
-            --collect:"XPlat Code Coverage"
+            /p:CollectCoverage=true `
+            /p:CoverletOutputFormat=opencover `
+            /p:CoverletOutput=TestResults/coverage.opencover.xml
 
       - name: List TestResults folder contents after tests
         shell: pwsh
@@ -65,12 +67,12 @@ jobs:
       - name: Copy coverage report to root TestResults
         shell: pwsh
         run: |
-          $coverageFile = Get-ChildItem -Path TestResults -Recurse -Filter 'coverage.cobertura.xml' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          $coverageFile = Get-ChildItem -Path TestResults -Recurse -Filter 'coverage.opencover.xml' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
           if ($coverageFile -ne $null) {
             Write-Host "Found coverage file at: $($coverageFile.FullName)"
-            Copy-Item $coverageFile.FullName -Destination TestResults/coverage.cobertura.xml -Force
+            Copy-Item $coverageFile.FullName -Destination TestResults/coverage.opencover.xml -Force
           } else {
-            Write-Error "Arquivo coverage.cobertura.xml não encontrado!"
+            Write-Error "Arquivo coverage.opencover.xml não encontrado!"
             exit 1
           }
 
