@@ -27,54 +27,30 @@ jobs:
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
         with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar-cache
-          restore-keys: ${{ runner.os }}-sonar-cache
+          path: ~\sonar\cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
 
       - name: Cache SonarCloud scanner
         id: cache-sonar-scanner
         uses: actions/cache@v4
         with:
-          path: ~/.sonar/scanner
+          path: .\.sonar\scanner
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
 
-      - name: Install SonarScanner
-        run: dotnet tool install --global dotnet-sonarscanner
+      - name: Install SonarCloud scanner
+        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+        shell: powershell
+        run: |
+          New-Item -Path .\.sonar\scanner -ItemType Directory -Force
+          dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
 
-      - name: Install Coverlet
-        run: dotnet add Solidariza.Tests/Solidariza.Tests.csproj package coverlet.msbuild
-
-      - name: Restore dependencies
-        run: dotnet restore Solidariza.sln
-
-      - name: Begin SonarCloud analysis
-        run: dotnet sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths="Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/TestResults/Solidariza.Tests/TestResults/coverage.cobertura.xml" /d:sonar.cs.xunit.reportsPaths="Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/TestResults/Solidariza.Tests/TestResults/results.trx" /d:sonar.exclusions="**/obj/**,**/bin/**,**/Solidariza.Tests/**" /d:sonar.projectBaseDir="C:\a\solidarizaAPI\solidarizaAPI" /d:sonar.scm.disabled=true /d:sonar.verbose=true
-
-      - name: Build
-        run: dotnet build Solidariza.sln --configuration Release --no-restore
-
-      - name: Run tests with coverage
-        run: dotnet test Solidariza.Tests/Solidariza.Tests.csproj --no-restore /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/TestResults/Solidariza.Tests/TestResults/coverage.cobertura.xml /p:UseSourceLink=true /p:CoverletOutputRelativePaths=true --logger "trx;LogFileName=Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/Solidariza.Tests/TestResults/Solidariza.Tests/TestResults/results.trx"
-
-      - name: List coverage files
-        run: dir /s /b coverage.cobertura.xml
-        shell: cmd
-
-      - name: List TRX files
-        run: dir /s /b results.trx
-        shell: cmd
-        continue-on-error: true
-
-      - name: Inspect coverage files
-        run: for /F "delims=" %%f in ('dir /s /b coverage.cobertura.xml') do type "%%f"
-        shell: cmd
-        continue-on-error: true
-
-      - name: Inspect TRX file
-        run: type "Solidariza.Tests\Solidariza.Tests\Solidariza.Tests\Solidariza.Tests\Solidariza.Tests\Solidariza.Tests\TestResults\Solidariza.Tests\TestResults\results.trx"
-        shell: cmd
-        continue-on-error: true
-
-      - name: End SonarCloud analysis
-        run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: powershell
+        run: |
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"SabineSantos21_solidarizaAPI" /o:"sabinesantos21" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+          dotnet build
+          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
