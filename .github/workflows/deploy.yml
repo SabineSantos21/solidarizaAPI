@@ -56,7 +56,9 @@ jobs:
             --logger "trx;LogFileName=results.trx" `
             --results-directory TestResults `
             /p:CollectCoverage=true `
+            /p:CoverletOutput=TestResults\coverage.cobertura.xml `
             /p:CoverletOutputFormat=cobertura
+
 
       - name: List all files in TestResults (to find coverage files)
         shell: pwsh
