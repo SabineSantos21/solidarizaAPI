@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <coverage line-rate="0.4205" branch-rate="0.65" version="1.9" timestamp="1749161771" lines-covered="821" lines-valid="1952" branches-covered="65" branches-valid="100">
   <sources>
-    <source>C:\Users\sabin\Source\Repos\solidarizaAPI\Solidariza\</source>
+    <source>.</source>
   </sources>
   <packages>
     <package name="Solidariza" line-rate="0.4205" branch-rate="0.65" complexity="421">
