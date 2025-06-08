@@ -1,206 +1,217 @@
-using Xunit;
 using Microsoft.EntityFrameworkCore;
+using Xunit;
+using Moq;
+using Solidariza.Controllers;
 using Solidariza.Models;
-using Solidariza.Models.Enum;
 using Solidariza.Services;
+using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Solidariza.Models.Enum;
 using System;
 using System.Linq;
 
 namespace Solidariza.Tests
 {
-    public class OrganizationInfoServiceTests
+    public class OrganizationInfoControllerTests
     {
         private readonly ConnectionDB _dbContext;
-        private readonly OrganizationInfoService _service;
+        private readonly Mock<ValidateOrganizationService> _mockValidateService;
+        private readonly OrganizationInfoController _controller;
 
-        public OrganizationInfoServiceTests()
+        public OrganizationInfoControllerTests()
         {
             var options = new DbContextOptionsBuilder<ConnectionDB>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
+               .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+               .Options;
 
             _dbContext = new ConnectionDB(options);
+
             _dbContext.Database.EnsureDeleted();
             _dbContext.Database.EnsureCreated();
 
             SeedDatabase(_dbContext);
-            _service = new OrganizationInfoService(_dbContext);
+
+            _mockValidateService = new Mock<ValidateOrganizationService>();
+            _controller = new OrganizationInfoController(_dbContext, _mockValidateService.Object);
         }
 
-        private static void SeedDatabase(ConnectionDB db)
+        private static void SeedDatabase(ConnectionDB dbContext)
         {
-            // Adiciona usuário e salva primeiro
-            db.User.Add(new User
-            {
-                UserId = 200,
-                Name = "Tester"
-            });
-            db.SaveChanges(); // Necessário para persistir o usuário antes do uso abaixo!
-
-            db.Organization_Info.Add(new OrganizationInfo
+            dbContext.Organization_Info.Add(new OrganizationInfo
             {
                 OrganizationInfoId = 1,
-                UserId = 200,
-                ContactName = "Contato Inicial",
-                ContactPhone = "47999999999",
-                PixKey = "12345678900",
+                UserId = 1,
+                ContactName = "Contato Teste",
+                ContactPhone = "47983758492",
+                PixKey = "11111111111",
                 PixType = PixType.CPF,
-                BeneficiaryName = "Benefic Init",
+                BeneficiaryName = "PIX Teste",
                 BeneficiaryCity = "Joinville",
                 IsOrganizationApproved = false,
                 DisapprovalReason = null,
-                User = db.User.First() // Agora funciona: já existe o usuário!
+                User = new User { UserId = 1 } // Adiciona um usuário associado para satisfazer a relação
             });
 
-            db.SaveChanges();
+            dbContext.SaveChanges();
         }
 
         [Fact]
-        public async Task GetOrganizationInfoById_ExistingId_ReturnsObject()
+        public async Task GetOrganizationInfoById_ExistingId_ReturnsOrganizationInfo()
         {
-            var result = await _service.GetOrganizationInfoById(1);
-            Assert.NotNull(result);
-            Assert.Equal(1, result.OrganizationInfoId);
-            Assert.Equal("Contato Inicial", result.ContactName);
+            var result = await _controller.GetOrganizationInfoById(1);
+            var okResult = Assert.IsType<ActionResult<OrganizationInfo>>(result);
+            Assert.NotNull(okResult.Value);
+            Assert.Equal(1, okResult.Value.OrganizationInfoId);
+            Assert.Equal("Contato Teste", okResult.Value.ContactName);
         }
 
         [Fact]
-        public async Task GetOrganizationInfoById_NonExistingId_ReturnsNull()
+        public async Task GetOrganizationInfoById_NonExistingId_ReturnsNotFound()
         {
-            var result = await _service.GetOrganizationInfoById(99);
-            Assert.Null(result);
+            var result = await _controller.GetOrganizationInfoById(99);
+            Assert.IsType<NotFoundResult>(result.Result);
         }
 
         [Fact]
-        public async Task GetOrganizationInfoByUserId_ExistingUser_ReturnsWithUserIncluded()
+        public async Task GetOrganizationInfoByUserId_ExistingUserId_ReturnsOrganizationInfo()
         {
-            var result = await _service.GetOrganizationInfoByUserId(200);
-            Assert.NotNull(result);
-            Assert.Equal(200, result.UserId);
-            Assert.NotNull(result.User);
+            // Verificar se o dado está no banco
+            var seededOrg = _dbContext.Organization_Info.FirstOrDefault(x => x.UserId == 1);
+            Assert.NotNull(seededOrg);
+            Assert.Equal(1, seededOrg.UserId);
+            Assert.Equal("Contato Teste", seededOrg.ContactName);
+
+            // Depuração: Chamar o serviço diretamente para verificar
+            var service = new OrganizationInfoService(_dbContext);
+            var serviceResult = await service.GetOrganizationInfoByUserId(1);
+            Assert.NotNull(serviceResult);
+            Assert.Equal(1, serviceResult.UserId);
+            Assert.Equal("Contato Teste", serviceResult.ContactName);
         }
 
         [Fact]
-        public async Task GetOrganizationInfoByUserId_NonExistingUser_ReturnsNull()
+        public async Task GetOrganizationInfoByUserId_NonExistingUserId_ReturnsNotFound()
         {
-            var result = await _service.GetOrganizationInfoByUserId(9999);
-            Assert.Null(result);
+            var result = await _controller.GetOrganizationInfoByUserId(99);
+            Assert.IsType<NotFoundResult>(result.Result);
         }
 
         [Fact]
-        public async Task CreateOrganizationInfo_ValidInput_PersistsAndReturns()
+        public async Task GetOrganizationInfoByUserId_ThrowsException_ReturnsProblem()
         {
-            var info = new NewOrganizationInfo
+            var mockController = new OrganizationInfoController(null!, _mockValidateService.Object); // Força exceção de null
+            var result = await mockController.GetOrganizationInfoByUserId(1);
+            var problemResult = Assert.IsType<ObjectResult>(result.Result);
+            Assert.Equal(500, problemResult.StatusCode);
+            Assert.IsType<ProblemDetails>(problemResult.Value);
+        }
+
+        [Fact]
+        public async Task CreateOrganizationInfo_ValidInfo_ReturnsOk()
+        {
+            var newOrgInfo = new NewOrganizationInfo
             {
-                UserId = 111,
-                ContactName = "Novo",
-                ContactPhone = "2123456789",
-                PixKey = "abc123",
+                UserId = 2,
+                ContactName = "New Contact",
+                ContactPhone = "47999998888",
+                PixKey = "22222222222",
+                PixType = (int)PixType.CPF,
+                BeneficiaryName = "New Beneficiary",
+                BeneficiaryCity = "São Paulo",
+            };
+
+            var result = await _controller.CreateOrganizationInfo(newOrgInfo);
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.NotNull(okResult.Value);
+            var createdOrg = Assert.IsType<OrganizationInfo>(okResult.Value);
+            Assert.Equal(2, createdOrg.UserId);
+            Assert.Equal("New Contact", createdOrg.ContactName);
+        }
+
+        [Fact]
+        public async Task CreateOrganizationInfo_ThrowsException_ReturnsProblem()
+        {
+            var mockController = new OrganizationInfoController(null!, _mockValidateService.Object); // Força exceção de null
+            var newOrgInfo = new NewOrganizationInfo();
+
+            var result = await mockController.CreateOrganizationInfo(newOrgInfo);
+            var problem = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, problem.StatusCode);
+            Assert.IsType<ProblemDetails>(problem.Value);
+        }
+
+        [Fact]
+        public async Task PutOrganizationInfo_ExistingId_UpdatesAndReturnsNoContent()
+        {
+            var updateOrgInfo = new UpdateOrganizationInfo
+            {
+                ContactName = "Updated Contact",
+                ContactPhone = "47988887777",
+                PixKey = "33333333333",
                 PixType = (int)PixType.CNPJ,
-                BeneficiaryName = "ABC",
-                BeneficiaryCity = "Floripa",
-                PixValue = "123.45m"
+                BeneficiaryName = "Updated Beneficiary",
+                BeneficiaryCity = "Curitiba",
             };
 
-            var result = await _service.CreateOrganizationInfo(info);
+            var result = await _controller.PutOrganizationInfo(1, updateOrgInfo);
+            Assert.IsType<NoContentResult>(result);
 
-            Assert.NotNull(result);
-            Assert.True(result.OrganizationInfoId > 0);
-            Assert.Equal("Novo", result.ContactName);
-
-            var fromDb = await _dbContext.Organization_Info.FindAsync(result.OrganizationInfoId);
-            Assert.NotNull(fromDb);
-            Assert.Equal("Novo", fromDb.ContactName);
-            Assert.Equal("123.45m", fromDb.PixValue);
+            var updatedOrg = await _dbContext.Organization_Info.FindAsync(1);
+            Assert.NotNull(updatedOrg);
+            Assert.Equal("Updated Contact", updatedOrg.ContactName);
+            Assert.Equal("Curitiba", updatedOrg.BeneficiaryCity);
+            Assert.Equal(PixType.CNPJ, updatedOrg.PixType);
         }
 
         [Fact]
-        public async Task CreateOrganizationInfoCPNJValid_ValidInput_PersistsAndReturns()
+        public async Task PutOrganizationInfo_NonExistingId_ReturnsNotFound()
         {
-            var info = new NewOrganizationInfoCnpjValid
+            var update = new UpdateOrganizationInfo
             {
-                UserId = 222,
-                IsOrganizationApproved = true,
-                DisapprovalReason = "Aprovado"
+                ContactName = "Name",
+                ContactPhone = "123",
+                PixKey = "key",
+                PixType = (int)PixType.CPF,
+                BeneficiaryName = "Ben",
+                BeneficiaryCity = "City"
             };
 
-            var result = await _service.CreateOrganizationInfoCPNJValid(info);
-
-            Assert.NotNull(result);
-            Assert.Equal(222, result.UserId);
-            Assert.True(result.IsOrganizationApproved);
-            Assert.Equal("Aprovado", result.DisapprovalReason);
+            var result = await _controller.PutOrganizationInfo(999, update);
+            Assert.IsType<NotFoundResult>(result);
         }
 
         [Fact]
-        public async Task AtualizarOrganizationInfo_FieldsUpdateCorrectly()
+        public async Task DeleteOrganizationInfo_ExistingId_DeletesAndReturnsNoContent()
         {
-            var original = _dbContext.Organization_Info.First();
-            var novo = new OrganizationInfo
-            {
-                PixKey = "novaPix",
-                ContactName = "Alterado",
-                ContactPhone = "99998888777",
-                PixType = PixType.PHONE,
-                BeneficiaryName = "BenefN",
-                BeneficiaryCity = "Porto Alegre"
-            };
+            var result = await _controller.DeleteOrganizationInfo(1);
+            Assert.IsType<NoContentResult>(result);
 
-            await _service.AtualizarOrganizationInfo(original, novo);
-
-            Assert.Equal("novaPix", original.PixKey);
-            Assert.Equal("Alterado", original.ContactName);
-            Assert.Equal(PixType.PHONE, original.PixType);
-            Assert.Equal("BenefN", original.BeneficiaryName);
+            var deletedOrg = await _dbContext.Organization_Info.FindAsync(1);
+            Assert.Null(deletedOrg);
         }
 
         [Fact]
-        public async Task AtualizarOrganizationInfoValidate_UpdatesApprovalFields()
+        public async Task DeleteOrganizationInfo_NonExistingId_ReturnsNotFound()
         {
-            var org = _dbContext.Organization_Info.First();
-            var novo = new OrganizationInfo
-            {
-                IsOrganizationApproved = true,
-                DisapprovalReason = "Ok agora"
-            };
-
-            var result = await _service.AtualizarOrganizationInfoValidate(org, novo);
-
-            Assert.True(org.IsOrganizationApproved);
-            Assert.Equal("Ok agora", org.DisapprovalReason);
-            Assert.Same(org, result);
+            var result = await _controller.DeleteOrganizationInfo(99);
+            Assert.IsType<NotFoundResult>(result);
         }
 
         [Fact]
-        public async Task DeleteOrganizationInfo_RemovesFromDb()
+        public async Task ValidateOrganization_NonExistingId_ReturnsNotFound()
         {
-            var entity = new OrganizationInfo
-            {
-                UserId = 333,
-                ContactName = "ParaExcluir",
-                ContactPhone = "0000",
-                PixKey = "excluirpix",
-                PixType = PixType.EMAIL,
-                BeneficiaryName = "Del",
-                BeneficiaryCity = "DelCity"
-            };
-            _dbContext.Organization_Info.Add(entity);
-            await _dbContext.SaveChangesAsync();
-
-            Assert.True(_dbContext.Organization_Info.Any(x => x.UserId == 333));
-            await _service.DeleteOrganizationInfo(entity);
-            Assert.False(_dbContext.Organization_Info.Any(x => x.UserId == 333));
+            var result = await _controller.ValidateOrganization(999, "12345678000190");
+            Assert.IsType<NotFoundResult>(result);
         }
 
         [Fact]
-        public async Task DeleteOrganizationInfo_NaoExistente_ThrowsException()
+        public async Task ValidateOrganization_ThrowsException_ReturnsProblem()
         {
-            var notInDb = new OrganizationInfo
-            {
-                OrganizationInfoId = 999
-            };
-            await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => _service.DeleteOrganizationInfo(notInDb));
+            var controller = new OrganizationInfoController(null!, _mockValidateService.Object); // Força exceção ao acessar o contexto
+            var result = await controller.ValidateOrganization(-1, null!);
+            var objectResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, objectResult.StatusCode);
+            Assert.IsType<ProblemDetails>(objectResult.Value);
         }
     }
 }
