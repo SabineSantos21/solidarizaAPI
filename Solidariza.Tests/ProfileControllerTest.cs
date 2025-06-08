@@ -1,15 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Xunit;
-using Moq;
 using Solidariza.Controllers;
 using Solidariza.Models;
-using Solidariza.Services;
-using Microsoft.AspNetCore.Mvc;
+using Solidariza.Models.Enum;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
-using Solidariza.Models.Enum;
 using System.Linq;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Solidariza.Tests
 {
@@ -132,7 +130,7 @@ namespace Solidariza.Tests
         [Fact]
         public async Task GetProfileByUserId_ThrowsException_ReturnsProblem()
         {
-            var controller = new ProfileController(null!); // Força null para causar exceção
+            var controller = new ProfileController(null!); // Força contexto nulo (força exceção)
 
             var result = await controller.GetProfileByUserId(1);
 
@@ -183,10 +181,20 @@ namespace Solidariza.Tests
         [Fact]
         public async Task CreateProfile_ThrowsException_ReturnsProblem()
         {
-            var controller = new ProfileController(null!); // Força null para causar exceção
+            var controller = new ProfileController(null!); // Força contexto nulo
             var newProfile = new NewProfile();
 
             var result = await controller.CreateProfile(newProfile);
+
+            var problemResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, problemResult.StatusCode);
+            Assert.IsType<ProblemDetails>(problemResult.Value);
+        }
+
+        [Fact]
+        public async Task CreateProfile_ReturnsProblem_WhenNewProfileIsNull()
+        {
+            var result = await _controller.CreateProfile(null!);
 
             var problemResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, problemResult.StatusCode);
@@ -273,9 +281,27 @@ namespace Solidariza.Tests
         }
 
         [Fact]
+        public async Task GetProfilesOrganization_ReturnsOk_WhenNoOrganizationProfiles()
+        {
+            // Remove todos os usuários do tipo Organization
+            var orgProfiles = _dbContext.Profile.Where(p => p.User.Type == UserType.Organization).ToList();
+            if (orgProfiles.Any())
+            {
+                _dbContext.Profile.RemoveRange(orgProfiles);
+                _dbContext.SaveChanges();
+            }
+
+            var result = await _controller.GetProfilesOrganization();
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var profiles = Assert.IsType<List<Profile>>(okResult.Value);
+            Assert.Empty(profiles);
+        }
+
+        [Fact]
         public async Task GetProfilesOrganization_ThrowsException_ReturnsProblem()
         {
-            var controller = new ProfileController(null!); // Força null para causar exceção
+            var controller = new ProfileController(null!); // Força contexto nulo
 
             var result = await controller.GetProfilesOrganization();
 
