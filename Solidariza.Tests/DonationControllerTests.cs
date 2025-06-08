@@ -5,6 +5,7 @@ using Solidariza.Interfaces.Services;
 using Solidariza.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Solidariza.Tests
 {
@@ -41,9 +42,8 @@ namespace Solidariza.Tests
                 DonationQRCode = new DonationQRCodeResponse { Qrcode_base64 = "base64string", Name = "PIX" }
             };
 
-            // Configuração sem conversão, pois a interface espera Task<OrganizationInfo>
             donationServiceMock.Setup(s => s.GetQRCodePixByCampaignId(It.IsAny<int>()))
-                .ReturnsAsync(orgInfo); // Remove a conversão para OrganizationInfo?
+                .ReturnsAsync(orgInfo);
 
             var controller = CreateController(context, donationServiceMock);
 
@@ -56,6 +56,25 @@ namespace Solidariza.Tests
             Assert.Equal(orgInfo.OrganizationInfoId, returnedOrgInfo.OrganizationInfoId);
             Assert.NotNull(returnedOrgInfo?.DonationQRCode);
             Assert.Equal(orgInfo.DonationQRCode.Qrcode_base64, returnedOrgInfo.DonationQRCode.Qrcode_base64);
+        }
+
+        [Fact]
+        public async Task GetDonationQRCode_ReturnsNotFound_WhenOrganizationInfoIsNull()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var donationServiceMock = new Mock<IDonationService>();
+
+            donationServiceMock.Setup(s => s.GetQRCodePixByCampaignId(It.IsAny<int>()))
+                .ReturnsAsync((OrganizationInfo?)null);
+
+            var controller = new DonationController(donationServiceMock.Object);
+
+            // Act
+            var result = await controller.GetDonationQRCode(1);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(result);
         }
 
         [Fact]
