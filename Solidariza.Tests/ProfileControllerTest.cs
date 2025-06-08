@@ -130,7 +130,7 @@ namespace Solidariza.Tests
         [Fact]
         public async Task GetProfileByUserId_ThrowsException_ReturnsProblem()
         {
-            var controller = new ProfileController(null!); // Força contexto nulo (força exceção)
+            var controller = new ProfileController(null!); // Força contexto nulo
 
             var result = await controller.GetProfileByUserId(1);
 
@@ -249,6 +249,19 @@ namespace Solidariza.Tests
         }
 
         [Fact]
+        public async Task PutProfile_ThrowsException_WhenContextNull()
+        {
+            var controller = new ProfileController(null!);
+            var updateProfile = new UpdateProfile
+            {
+                Name = "Should Not Matter"
+            };
+            await Assert.ThrowsAsync<NullReferenceException>(() =>
+                controller.PutProfile(1, updateProfile)
+            );
+        }
+
+        [Fact]
         public async Task DeleteProfile_ReturnsNoContent_WhenProfileExists()
         {
             var result = await _controller.DeleteProfile(2);
@@ -265,6 +278,15 @@ namespace Solidariza.Tests
             var result = await _controller.DeleteProfile(999);
 
             Assert.IsType<NotFoundResult>(result);
+        }
+
+        [Fact]
+        public async Task DeleteProfile_ThrowsException_WhenContextNull()
+        {
+            var controller = new ProfileController(null!);
+            await Assert.ThrowsAsync<NullReferenceException>(() =>
+                controller.DeleteProfile(1)
+            );
         }
 
         [Fact]
