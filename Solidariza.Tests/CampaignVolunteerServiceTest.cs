@@ -32,11 +32,12 @@ namespace Solidariza.Tests.Services
 
         private void SeedDatabase()
         {
-            var campaign = new Campaign { CampaignId = 1, UserId = 100 };
+            var org = new User { UserId = 100, Name = "Org" };
             var user = new User { UserId = 1, Name = "User1" };
+            var campaign = new Campaign { CampaignId = 1, UserId = 100, User = org };
 
+            _dbContext.User.AddRange(org, user);
             _dbContext.Campaign.Add(campaign);
-            _dbContext.User.Add(user);
 
             _dbContext.Campaign_Volunteers.AddRange(
                 new CampaignVolunteer
@@ -128,6 +129,40 @@ namespace Solidariza.Tests.Services
 
             var deleted = await _dbContext.Campaign_Volunteers.FindAsync(volunteer.CampaignVolunteerId);
             Assert.Null(deleted);
+        }
+
+        [Fact]
+        public async Task GetCampaignVolunteersByUserIdAndAproved_ReturnsApprovedOnly()
+        {
+            var volunteers = await _service.GetCampaignVolunteersByUserIdAndAproved(1);
+            Assert.Single(volunteers);
+            Assert.All(volunteers, v => Assert.Equal(CampaignVolunteerStatus.APROVED, v.IsApproved));
+        }
+
+        [Fact]
+        public async Task GetCampaignVolunteersByUserIdAndAproved_ReturnsEmpty_WhenNoApproved()
+        {
+            var volunteers = await _service.GetCampaignVolunteersByUserIdAndAproved(999);
+            Assert.Empty(volunteers);
+        }
+
+        [Fact]
+        public async Task AtualizarCampaignVolunteer_NonExistingVolunteer_ThrowsException()
+        {
+            var fake = new CampaignVolunteer
+            {
+                CampaignVolunteerId = 999,
+                IsApproved = CampaignVolunteerStatus.PENDING
+            };
+            var update = new CampaignVolunteer { IsApproved = CampaignVolunteerStatus.APROVED };
+            await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => _service.AtualizarCampaignVolunteer(fake, update));
+        }
+
+        [Fact]
+        public async Task DeletarCampaignVolunteer_NotExistingVolunteer_ThrowsException()
+        {
+            var fake = new CampaignVolunteer { CampaignVolunteerId = 999 };
+            await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => _service.DeletarCampaignVolunteer(fake));
         }
     }
 }
