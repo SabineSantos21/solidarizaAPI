@@ -79,7 +79,6 @@ namespace Solidariza.Tests
             Assert.Equal(2, returnedCampaigns.Count);
         }
 
-
         [Fact]
         public async Task GetCampaigns_WhenEmpty_ReturnsNotFound()
         {
@@ -91,9 +90,48 @@ namespace Solidariza.Tests
         }
 
         [Fact]
+        public async Task GetCampaigns_ReturnsNotFound_WhenServiceReturnsNull()
+        {
+            _campaignService.Setup(s => s.GetCampaigns())
+                .ReturnsAsync((List<Campaign>?)null);
+
+            var result = await _controller.GetCampaigns();
+
+            Assert.IsType<NotFoundResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task GetCampaignById_ReturnsCampaign_WhenExists()
+        {
+            var campaign = new Campaign { CampaignId = 10, Title = "Campanha Teste" };
+
+            _campaignService.Setup(s => s.GetCampaignById(10))
+                .ReturnsAsync(campaign);
+
+            var result = await _controller.GetCampaignById(10);
+
+            var okResult = Assert.IsType<ActionResult<Campaign>>(result);
+            var returnedCampaign = Assert.IsType<Campaign>(okResult.Value);
+
+            Assert.NotNull(returnedCampaign);
+            Assert.Equal("Campanha Teste", returnedCampaign.Title);
+        }
+
+        [Fact]
         public async Task GetCampaignById_NonExistingId_ReturnsNotFound()
         {
             var result = await _controller.GetCampaignById(99);
+            Assert.IsType<NotFoundResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task GetCampaignById_ReturnsNotFound_WhenServiceReturnsNull()
+        {
+            _campaignService.Setup(s => s.GetCampaignById(It.IsAny<int>()))
+                .ReturnsAsync((Campaign?)null);
+
+            var result = await _controller.GetCampaignById(999);
+
             Assert.IsType<NotFoundResult>(result.Result);
         }
 
@@ -118,6 +156,17 @@ namespace Solidariza.Tests
             Assert.NotNull(returnedCampaigns);
             Assert.Equal(2, returnedCampaigns.Count);
             Assert.All(returnedCampaigns, c => Assert.Equal(userId, c.UserId));
+        }
+
+        [Fact]
+        public async Task GetCampaignByUserId_ReturnsNotFound_WhenServiceReturnsNull()
+        {
+            _campaignService.Setup(s => s.GetCampaignByUserId(It.IsAny<int>()))
+                .ReturnsAsync((List<Campaign>?)null);
+
+            var result = await _controller.GetCampaignByUserId(42);
+
+            Assert.IsType<NotFoundResult>(result.Result);
         }
 
         [Fact]

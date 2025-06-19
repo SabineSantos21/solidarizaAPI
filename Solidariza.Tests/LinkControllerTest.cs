@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Solidariza.Models.Enum;
+using System;
 
 namespace Solidariza.Tests
 {
@@ -63,6 +64,13 @@ namespace Solidariza.Tests
         }
 
         [Fact]
+        public async Task GetLinksByProfileId_WhenDbContextIsNull_ThrowsException()
+        {
+            var controller = new LinkController(null!);
+            await Assert.ThrowsAsync<NullReferenceException>(() => controller.GetLinksByProfileId(1));
+        }
+
+        [Fact]
         public async Task CreateLink_ValidLink_ReturnsOk()
         {
             var newLink = new NewLink
@@ -76,6 +84,24 @@ namespace Solidariza.Tests
             var okResult = Assert.IsType<OkObjectResult>(result);
             var createdLink = Assert.IsType<Link>(okResult.Value);
             Assert.Equal("www.example.com", createdLink.Url);
+        }
+
+        [Fact]
+        public async Task CreateLink_WhenExceptionThrown_ReturnsProblem()
+        {
+            var newLink = new NewLink
+            {
+                Url = null, // Forçar o serviço a lançar erro
+                Type = LinkType.OTHER,
+                ProfileId = 1
+            };
+
+            var controllerWithNullContext = new LinkController(null!);
+            var result = await controllerWithNullContext.CreateLink(newLink);
+
+            var problemResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, problemResult.StatusCode);
+            Assert.IsType<ProblemDetails>(problemResult.Value);
         }
 
         [Fact]
@@ -103,6 +129,13 @@ namespace Solidariza.Tests
         {
             var result = await _controller.DeleteLink(99);
             Assert.IsType<NotFoundResult>(result);
+        }
+
+        [Fact]
+        public async Task DeleteLink_WhenDbContextIsNull_ThrowsException()
+        {
+            var controller = new LinkController(null!);
+            await Assert.ThrowsAsync<NullReferenceException>(() => controller.DeleteLink(1));
         }
     }
 }

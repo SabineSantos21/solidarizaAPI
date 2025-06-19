@@ -58,7 +58,7 @@ namespace Solidariza.Models
         public string? ContactPhone { get; set; }
     }
 
-    public class NewOrganizationInfoCNPJValid 
+    public class NewOrganizationInfoCnpjValid 
     {
         [JsonRequired]
         [Required]

@@ -40,7 +40,7 @@ namespace Solidariza
             });
 
             // Pega chave JWT do ambiente/configuração (NUNCA HARD CODE!)
-            string? jwtKey = Configuration["JwtKey"];
+            string? jwtKey = Configuration["JwtSettings:SecretKey"];
 
             if (string.IsNullOrEmpty(jwtKey))
             {
@@ -66,6 +66,8 @@ namespace Solidariza
                 };
             });
 
+            services.AddAuthorization();
+
             services.AddScoped<ICampaignService, CampaignService>();
             services.AddScoped<ICampaignVolunteerService, CampaignVolunteerService>();
             services.AddScoped<IDonationService, DonationService>();
@@ -86,7 +88,10 @@ namespace Solidariza
                 options.UseMySql(connectiondb, ServerVersion.AutoDetect(connectiondb)));
 
             services.AddCors(options => options.AddPolicy("PolicyCors", builder => builder
-                .AllowAnyOrigin()
+                .WithOrigins(
+                    "http://localhost:4200",
+                    "https://solidariza-web-ctd5dpbjauchgufp.centralus-01.azurewebsites.net"
+                )
                 .AllowAnyMethod()
                 .AllowAnyHeader()));
 
@@ -95,7 +100,7 @@ namespace Solidariza
             services.AddHttpClient("http-client");
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {

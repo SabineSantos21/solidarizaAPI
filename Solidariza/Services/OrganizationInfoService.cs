@@ -46,7 +46,7 @@ namespace Solidariza.Services
          
         }
 
-        public async Task<OrganizationInfo> CreateOrganizationInfoCPNJValid(NewOrganizationInfoCNPJValid newOrganizationInfo)
+        public async Task<OrganizationInfo> CreateOrganizationInfoCPNJValid(NewOrganizationInfoCnpjValid newOrganizationInfo)
         {
 
             OrganizationInfo organizationInfo = new OrganizationInfo()
