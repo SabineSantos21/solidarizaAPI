@@ -4,11 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 using Solidariza.Models.Enum;
 using Solidariza.Common;
 using Solidariza.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Solidariza.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;

@@ -3,6 +3,24 @@ using System.Text.Json.Serialization;
 
 namespace Solidariza.Models
 {
+    public class ApicnpjConsultResponseObject
+    {
+        public bool IsSuccess { get; set; }
+
+        public string? Response {  get; set; }
+    }
+
+    public class ApicnpjConsultResponseError
+    {
+        [JsonPropertyName("status")]
+        public int Status { get; set; }
+
+        [JsonPropertyName("titulo")]
+        public string? Titulo { get; set; }
+
+        [JsonPropertyName("detalhes")]
+        public string? Detalhes { get; set; }
+    }
 
     public class ApicnpjConsultResponse
     {

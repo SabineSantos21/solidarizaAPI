@@ -40,7 +40,7 @@ namespace Solidariza
             });
 
             // Pega chave JWT do ambiente/configuração (NUNCA HARD CODE!)
-            string? jwtKey = Configuration["JwtKey"];
+            string? jwtKey = Configuration["JwtSettings:SecretKey"];
 
             if (string.IsNullOrEmpty(jwtKey))
             {
@@ -66,6 +66,8 @@ namespace Solidariza
                 };
             });
 
+            services.AddAuthorization();
+
             services.AddScoped<ICampaignService, CampaignService>();
             services.AddScoped<ICampaignVolunteerService, CampaignVolunteerService>();
             services.AddScoped<IDonationService, DonationService>();
@@ -87,6 +89,7 @@ namespace Solidariza
 
             services.AddCors(options => options.AddPolicy("PolicyCors", builder => builder
                 .WithOrigins(
+                    "http://localhost:4200",
                     "https://solidariza-web-ctd5dpbjauchgufp.centralus-01.azurewebsites.net"
                 )
                 .AllowAnyMethod()
