@@ -6,6 +6,6 @@ namespace Solidariza.Interfaces.Services
     {
         Task<ConsultCnpjResponse> ConsultCNPJ(string cnpj);
 
-        Task<string> GetOrganizationByAPI(string cnpj);
+        Task<ApicnpjConsultResponseObject> GetOrganizationByAPI(string cnpj);
     }
 }

@@ -1,20 +1,20 @@
-using Solidariza;
-using Solidariza.Services;
 using Microsoft.AspNetCore.Mvc;
 using Solidariza.Models;
-using Solidariza.Models.Enum;
+using Solidariza.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Solidariza.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize]
     public class DonationController : ControllerBase
     {
-        private readonly ConnectionDB _dbContext;
+        private readonly IDonationService _donationService;
 
-        public DonationController(ConnectionDB dbContext)
+        public DonationController(IDonationService donationService)
         {
-            _dbContext = dbContext;
+            _donationService = donationService;
         }
 
         [HttpGet("QRCode/{campaignId}")]
@@ -22,9 +22,7 @@ namespace Solidariza.Controllers
         {
             try
             {
-                DonationService donationService = new DonationService(_dbContext);
-
-                OrganizationInfo organizationInfo = await donationService.GetQRCodePixByCampaignId(campaignId);
+                OrganizationInfo organizationInfo = await _donationService.GetQRCodePixByCampaignId(campaignId);
 
                 if (organizationInfo == null)
                 {

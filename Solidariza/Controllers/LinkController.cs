@@ -2,11 +2,13 @@ using Solidariza.Services;
 using Microsoft.AspNetCore.Mvc;
 using Solidariza.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Solidariza.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize]
     public class LinkController : ControllerBase
     {
         private readonly ConnectionDB _dbContext;

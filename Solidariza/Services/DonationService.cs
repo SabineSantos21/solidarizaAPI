@@ -7,31 +7,30 @@ namespace Solidariza.Services
 {
     public class DonationService: IDonationService
     {
-        private readonly ConnectionDB _dbContext;
         private readonly HttpClient _httpClient;
+        private readonly ICampaignService _campaignService;
+        private readonly IOrganizationInfoService _organizationInfoService;
+        private readonly IConfiguration _configuration;
 
-        public DonationService(ConnectionDB dbContext) 
+        public DonationService(IConfiguration configuration, ICampaignService campaignService, IOrganizationInfoService organizationInfoService) 
         {
-            _dbContext = dbContext;
             _httpClient = new HttpClient();
+            _campaignService = campaignService;
+            _organizationInfoService = organizationInfoService;
+            _configuration = configuration;
         }
 
         public async Task<OrganizationInfo> GetQRCodePixByCampaignId(int campaignId)
         {
-
-            CampaignService campaignService =  new CampaignService(_dbContext);
-            Campaign? campaign = await campaignService.GetCampaignById(campaignId);
-
-            if(campaign == null) 
+            var campaign = await _campaignService.GetCampaignById(campaignId);
+            if (campaign == null)
                 throw new InvalidOperationException("Não foi possível localizar a campanha");
 
-            OrganizationInfoService organizationInfoService = new OrganizationInfoService(_dbContext);
-            OrganizationInfo? organizationInfo = await organizationInfoService.GetOrganizationInfoByUserId(campaign.UserId);
-
+            var organizationInfo = await _organizationInfoService.GetOrganizationInfoByUserId(campaign.UserId);
             if (organizationInfo == null)
-                throw new InvalidOperationException("Não foi possível localizar a as informações da organização");
+                throw new InvalidOperationException("Não foi possível localizar as informações da organização");
 
-            DonationQRCodeRequest donationQRCodeRequest = new DonationQRCodeRequest()
+            var donationQRCodeRequest = new DonationQRCodeRequest
             {
                 Key = organizationInfo.PixKey,
                 Key_type = organizationInfo.PixType.ToString(),
@@ -39,9 +38,8 @@ namespace Solidariza.Services
                 City = organizationInfo.BeneficiaryCity
             };
 
-            var pixQrCodeJson = GetDonationQRCode(donationQRCodeRequest);
-            var pixQrCode = JsonSerializer.Deserialize<DonationQRCodeResponse>(await pixQrCodeJson);
-
+            var pixQrCodeJson = await GetDonationQRCode(donationQRCodeRequest);
+            var pixQrCode = JsonSerializer.Deserialize<DonationQRCodeResponse>(pixQrCodeJson);
             organizationInfo.DonationQRCode = pixQrCode;
 
             return organizationInfo;
@@ -49,7 +47,7 @@ namespace Solidariza.Services
 
         public async Task<string> GetDonationQRCode(DonationQRCodeRequest donationQRCodeRequest)
         {
-            string url = "https://www.gerarpix.com.br/emvqr-static";
+            string? url = _configuration["Pix:QRCodeUrl"];
             string jsonPayload = JsonSerializer.Serialize(donationQRCodeRequest);
 
             try
@@ -59,12 +57,10 @@ namespace Solidariza.Services
                     Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json")
                 };
 
-                HttpResponseMessage response = await _httpClient.SendAsync(request);
+                var response = await _httpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
 
-                string responseContent = await response.Content.ReadAsStringAsync();
-
-                return responseContent;
+                return await response.Content.ReadAsStringAsync();
             }
             catch (Exception ex)
             {

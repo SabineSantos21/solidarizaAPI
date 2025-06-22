@@ -16,10 +16,22 @@ namespace Solidariza.Services
         public async Task<ConsultCnpjResponse> ConsultCNPJ(string cnpj)
         {
 
-            var organizationJson = GetOrganizationByAPI(cnpj);
-            var organization = JsonSerializer.Deserialize<ApicnpjConsultResponse>(await organizationJson);
+            ApicnpjConsultResponseObject organizationResponseAPI = await GetOrganizationByAPI(cnpj);
 
-            if (organization == null)
+            if (organizationResponseAPI.IsSuccess == false)
+            {
+                var organizationError = JsonSerializer.Deserialize<ApicnpjConsultResponseError>(organizationResponseAPI.Response);
+
+                return new ConsultCnpjResponse()
+                {
+                    DisapprovalReason = organizationError?.Detalhes,
+                    IsValid = false
+                };
+            }
+
+            var organization = JsonSerializer.Deserialize<ApicnpjConsultResponse>(organizationResponseAPI.Response);
+
+            if (organization?.CnpjRaiz == null)
             {
                 return new ConsultCnpjResponse()
                 {
@@ -30,7 +42,7 @@ namespace Solidariza.Services
 
             bool isAtiva = organization.Estabelecimento?.SituacaoCadastral == "Ativa";
 
-            if (isAtiva == false) {
+            if (!isAtiva) {
                     
                 return new ConsultCnpjResponse()
                 {
@@ -53,7 +65,7 @@ namespace Solidariza.Services
             bool isSemFinsLucrativos = organization.NaturezaJuridica != null &&
                                         NaturezasPermitidas.Contains(int.Parse(organization.NaturezaJuridica.Id));
 
-            if (isSemFinsLucrativos == false) {
+            if (!isSemFinsLucrativos) {
                 return new ConsultCnpjResponse()
                 {
                     DisapprovalReason = "Esta organização não é registrada como sem fins lucrativos. Confira as informações e tente novamente.",
@@ -68,24 +80,39 @@ namespace Solidariza.Services
             };
         }
 
-        public async Task<string> GetOrganizationByAPI(string cnpj)
+        public async Task<ApicnpjConsultResponseObject> GetOrganizationByAPI(string cnpj)
         {
             string url = $"https://publica.cnpj.ws/cnpj/{cnpj}";
+            ApicnpjConsultResponseObject responseApi = new ApicnpjConsultResponseObject();
 
             try
             {
+
                 var request = new HttpRequestMessage(HttpMethod.Get, url);
 
                 HttpResponseMessage response = await _httpClient.SendAsync(request);
-                response.EnsureSuccessStatusCode();
 
-                string responseContent = await response.Content.ReadAsStringAsync();
+                var responseContent = string.Empty;
 
-                return responseContent;
+                if (response.IsSuccessStatusCode)
+                {
+                    responseApi.IsSuccess = true;
+                }
+                else
+                {
+                    responseApi.IsSuccess = false;
+                }
+                
+                responseApi.Response = await response.Content.ReadAsStringAsync();
+
+                return responseApi;
             }
             catch (Exception ex)
             {
-                return $"Erro: {ex.Message}";
+                responseApi.IsSuccess = false;
+                responseApi.Response = $"Erro: {ex.Message}";
+
+                return responseApi;
             }
         }
     }

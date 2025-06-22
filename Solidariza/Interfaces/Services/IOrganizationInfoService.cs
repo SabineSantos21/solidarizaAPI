@@ -10,7 +10,7 @@ namespace Solidariza.Interfaces.Services
         
         Task<OrganizationInfo> CreateOrganizationInfo(NewOrganizationInfo newOrganizationInfo);
         
-        Task<OrganizationInfo> CreateOrganizationInfoCPNJValid(NewOrganizationInfoCNPJValid newOrganizationInfo);
+        Task<OrganizationInfo> CreateOrganizationInfoCPNJValid(NewOrganizationInfoCnpjValid newOrganizationInfo);
         
         Task AtualizarOrganizationInfo(OrganizationInfo existingOrganizationInfo, OrganizationInfo organizationInfo);
         
