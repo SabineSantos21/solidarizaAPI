@@ -30,6 +30,7 @@ namespace Solidariza.Controllers
             _organizationInfoService = organizationInfoService;
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUserById(int id)
         {
@@ -43,6 +44,7 @@ namespace Solidariza.Controllers
             return user;
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(NewUser newUser)
         {
