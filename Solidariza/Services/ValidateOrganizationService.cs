@@ -93,8 +93,6 @@ namespace Solidariza.Services
 
                 HttpResponseMessage response = await _httpClient.SendAsync(request);
 
-                var responseContent = string.Empty;
-
                 if (response.IsSuccessStatusCode)
                 {
                     responseApi.IsSuccess = true;
