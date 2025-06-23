@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Solidariza.Models;
 using Solidariza.Models.Enum;
 using Microsoft.AspNetCore.Authorization;
+using Solidariza.Interfaces.Services;
 
 namespace Solidariza.Controllers
 {
@@ -13,9 +14,9 @@ namespace Solidariza.Controllers
     public class OrganizationInfoController : ControllerBase
     {
         private readonly ConnectionDB _dbContext;
-        private readonly ValidateOrganizationService _validateOrganizationService;
+        private readonly IValidateOrganizationService _validateOrganizationService;
 
-        public OrganizationInfoController(ConnectionDB dbContext, ValidateOrganizationService validateOrganizationService)
+        public OrganizationInfoController(ConnectionDB dbContext, IValidateOrganizationService validateOrganizationService)
         {
             _dbContext = dbContext;
             _validateOrganizationService = validateOrganizationService;
