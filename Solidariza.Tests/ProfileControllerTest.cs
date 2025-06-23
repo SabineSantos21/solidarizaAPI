@@ -306,7 +306,10 @@ namespace Solidariza.Tests
         public async Task GetProfilesOrganization_ReturnsOk_WhenNoOrganizationProfiles()
         {
             // Remove todos os usuários do tipo Organization
-            var orgProfiles = _dbContext.Profile.Where(p => p.User.Type == UserType.Organization).ToList();
+            var orgProfiles = _dbContext.Profile
+            .Where(p => p.User != null && p.User.Type == UserType.Organization)
+            .ToList();
+
             if (orgProfiles.Any())
             {
                 _dbContext.Profile.RemoveRange(orgProfiles);

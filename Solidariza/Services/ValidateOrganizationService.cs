@@ -18,9 +18,10 @@ namespace Solidariza.Services
 
             ApicnpjConsultResponseObject organizationResponseAPI = await GetOrganizationByAPI(cnpj);
 
-            if (organizationResponseAPI.IsSuccess == false)
+            if (!organizationResponseAPI.IsSuccess)
             {
-                var organizationError = JsonSerializer.Deserialize<ApicnpjConsultResponseError>(organizationResponseAPI.Response);
+                var organizationError = JsonSerializer.Deserialize<ApicnpjConsultResponseError>(organizationResponseAPI.Response ?? throw new InvalidOperationException("Resposta da API está nula"));
+
 
                 return new ConsultCnpjResponse()
                 {
@@ -29,7 +30,7 @@ namespace Solidariza.Services
                 };
             }
 
-            var organization = JsonSerializer.Deserialize<ApicnpjConsultResponse>(organizationResponseAPI.Response);
+            var organization = JsonSerializer.Deserialize<ApicnpjConsultResponse>(organizationResponseAPI.Response ?? throw new InvalidOperationException("Resposta da API está nula"));
 
             if (organization?.CnpjRaiz == null)
             {
