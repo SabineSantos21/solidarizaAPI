@@ -39,6 +39,12 @@ namespace Solidariza.Services
             };
 
             var pixQrCodeJson = await GetDonationQRCode(donationQRCodeRequest);
+
+            if (!pixQrCodeJson.TrimStart().StartsWith("{"))
+            {
+                throw new InvalidOperationException($"Resposta inesperada da API de QR Code: {pixQrCodeJson}");
+            }
+
             var pixQrCode = JsonSerializer.Deserialize<DonationQRCodeResponse>(pixQrCodeJson);
             organizationInfo.DonationQRCode = pixQrCode;
 
@@ -58,9 +64,14 @@ namespace Solidariza.Services
                 };
 
                 var response = await _httpClient.SendAsync(request);
-                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
 
-                return await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new HttpRequestException($"Erro ao gerar QR Code Pix: {response.StatusCode} - {content}");
+                }
+
+                return content;
             }
             catch (Exception ex)
             {
