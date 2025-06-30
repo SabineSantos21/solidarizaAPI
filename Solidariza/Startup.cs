@@ -70,7 +70,6 @@ namespace Solidariza
 
             services.AddScoped<ICampaignService, CampaignService>();
             services.AddScoped<ICampaignVolunteerService, CampaignVolunteerService>();
-            services.AddScoped<IDonationService, DonationService>();
             services.AddScoped<ILinkService, LinkService>();
             services.AddScoped<ILoginService, LoginService>();
             services.AddScoped<IOrganizationInfoService, OrganizationInfoService>();
