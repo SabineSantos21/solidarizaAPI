@@ -27,7 +27,6 @@ O Solidariza foi desenvolvido com foco em eficiência, escalabilidade e facilida
 ### Integrações
 
 - [API de Consulta de CNPJ - cnpj.ws](https://www.cnpj.ws/pt-BR)
-- [API Gerar QR Code PIX - GerarPix](https://www.gerarpix.com.br)
 
 ---
 
